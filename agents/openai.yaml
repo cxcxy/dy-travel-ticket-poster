@@ -1,0 +1,4 @@
+interface:
+  display_name: "DY 旅行票根海报"
+  short_description: "将单张或批量照片稳定转换成统一风格的旅行票根海报成品"
+  default_prompt: "Use $dy-travel-ticket-poster to convert these photos into clean 3:4 travel-ticket posters."
