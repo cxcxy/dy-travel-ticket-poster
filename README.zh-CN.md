@@ -6,6 +6,62 @@
 
 每张照片最终交付一张 `1170 × 1560`、`3:4`、无透明通道的 PNG。成品中不会保留手机状态栏、通知、播放器控件和水印。
 
+## 安装到不同 Agent
+
+这是一个私有仓库。请先确认当前 GitHub 账号拥有仓库访问权限，并已登录 GitHub CLI：
+
+```bash
+gh auth login
+```
+
+然后选择与你使用的 Agent 对应的一种安装方式即可，不需要重复安装到所有目录。
+
+### Codex
+
+```bash
+mkdir -p ~/.codex/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-poster
+```
+
+### Claude Code
+
+```bash
+mkdir -p ~/.claude/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.claude/skills/dy-travel-ticket-poster
+```
+
+### Cursor
+
+```bash
+mkdir -p ~/.cursor/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.cursor/skills/dy-travel-ticket-poster
+```
+
+### Gemini CLI
+
+```bash
+mkdir -p ~/.gemini/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.gemini/skills/dy-travel-ticket-poster
+```
+
+### GitHub Copilot
+
+```bash
+mkdir -p ~/.copilot/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.copilot/skills/dy-travel-ticket-poster
+```
+
+### 其他兼容 Agent Skills 的 Agent
+
+如果 Agent 支持通用的个人 Skills 目录，可以安装到 `~/.agents/skills`。Codex、Cursor、Gemini CLI 和 GitHub Copilot 等支持该共享目录的客户端，也可以通过这种方式共用一份安装。
+
+```bash
+mkdir -p ~/.agents/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.agents/skills/dy-travel-ticket-poster
+```
+
+安装完成后，重新启动或刷新对应 Agent，让它重新扫描 Skills。安装本 Skill 只会提供工作流和版式规范；Agent 还需要具备可用的图片生成或图片编辑工具。Codex 可直接配合 `imagegen` Skill，其他 Agent 需要提供等效能力。
+
 ## 能做什么
 
 - 保留原图中的人物身份、动物、产品、建筑、车辆和关键动作
@@ -31,19 +87,9 @@
 
 完整的版式参数见 [references/style-spec.md](references/style-spec.md)。
 
-## 安装
-
-这是一个私有仓库。拥有访问权限并已登录 GitHub CLI 后，可以把它克隆到 Codex Skills 目录。
-
-```bash
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-poster
-```
-
-安装后重新启动或刷新 Codex，让系统重新发现这个 Skill。
-
 ## 使用方法
 
-附上一张或多张本地 PNG、JPG 照片，然后让 Codex 使用这个 Skill。
+附上一张或多张本地 PNG、JPG 照片，然后让当前 Agent 使用这个 Skill。
 
 ```text
 使用 $dy-travel-ticket-poster，把这些照片做成统一的 3:4 旅行票根海报。
@@ -55,7 +101,7 @@ gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-pos
 使用 $dy-travel-ticket-poster 处理这张照片，标题用 WATERFRONT，日期用 2026 - 08。
 ```
 
-工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 完成栅格编辑，目视检查结果，再通过 [scripts/normalize_output.sh](scripts/normalize_output.sh) 输出标准尺寸成品。
+工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 或等效图片工具完成栅格编辑，目视检查结果，再通过 [scripts/normalize_output.sh](scripts/normalize_output.sh) 输出标准尺寸成品。
 
 ## 信息生成规则
 
@@ -67,7 +113,8 @@ gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-pos
 
 ## 环境要求
 
-- Codex 环境中可以使用 `imagegen` Skill
+- 支持 `SKILL.md` 的 Agent Skills 环境
+- 可用的图片生成或图片编辑工具；Codex 推荐使用 `imagegen` Skill
 - 本地安装 ImageMagick，用于最终尺寸归一化
 - 本地可以访问需要处理的原始照片
 

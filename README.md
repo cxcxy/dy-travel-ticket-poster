@@ -6,6 +6,62 @@ Turn one photo or a batch of photos into a consistent series of travel-ticket po
 
 The final deliverable for each photo is a clean `1170 × 1560` PNG in a `3:4` aspect ratio. Phone UI, notifications, player controls, and watermarks are excluded from the poster.
 
+## Install for different agents
+
+This repository is private. First, make sure your GitHub account has access to it and authenticate GitHub CLI:
+
+```bash
+gh auth login
+```
+
+Then choose the installation method for the agent you use. You do not need to install the Skill into every directory.
+
+### Codex
+
+```bash
+mkdir -p ~/.codex/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-poster
+```
+
+### Claude Code
+
+```bash
+mkdir -p ~/.claude/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.claude/skills/dy-travel-ticket-poster
+```
+
+### Cursor
+
+```bash
+mkdir -p ~/.cursor/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.cursor/skills/dy-travel-ticket-poster
+```
+
+### Gemini CLI
+
+```bash
+mkdir -p ~/.gemini/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.gemini/skills/dy-travel-ticket-poster
+```
+
+### GitHub Copilot
+
+```bash
+mkdir -p ~/.copilot/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.copilot/skills/dy-travel-ticket-poster
+```
+
+### Other Agent Skills-compatible agents
+
+If an agent supports the shared personal Skills directory, install the repository under `~/.agents/skills`. Clients such as Codex, Cursor, Gemini CLI, and GitHub Copilot that discover this shared directory can use the same installation.
+
+```bash
+mkdir -p ~/.agents/skills
+gh repo clone cxcxy/dy-travel-ticket-poster ~/.agents/skills/dy-travel-ticket-poster
+```
+
+Restart or refresh the relevant agent after installation so it rescans its Skills. Installing this Skill provides the workflow and visual specification only; the agent must also have an image-generation or image-editing tool available. Codex can use the `imagegen` Skill directly, while other agents need an equivalent capability.
+
 ## What the Skill handles
 
 - Preserves recognizable people, animals, products, buildings, vehicles, and actions
@@ -31,19 +87,9 @@ The poster uses a restrained, repeatable layout.
 
 Full construction details are in [references/style-spec.md](references/style-spec.md).
 
-## Install
-
-This repository is private. With access to the repository and an authenticated GitHub CLI, clone it into your Codex skills directory.
-
-```bash
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-poster
-```
-
-Restart or refresh Codex after installation so the Skill can be discovered.
-
 ## Use
 
-Attach one or more local PNG or JPG photos, then ask Codex to use the Skill.
+Attach one or more local PNG or JPG photos, then ask your agent to use the Skill.
 
 ```text
 Use $dy-travel-ticket-poster to convert these photos into clean 3:4 travel-ticket posters.
@@ -55,7 +101,7 @@ You can also provide explicit metadata.
 Use $dy-travel-ticket-poster for this photo. Title it WATERFRONT and use 2026 - 08.
 ```
 
-For each input, the workflow inspects the photo, chooses a safe crop, prepares the ticket metadata, performs the raster edit with the installed `imagegen` Skill, checks the result, and normalizes the approved output with [scripts/normalize_output.sh](scripts/normalize_output.sh).
+For each input, the workflow inspects the photo, chooses a safe crop, prepares the ticket metadata, performs the raster edit with the installed `imagegen` Skill or an equivalent image tool, checks the result, and normalizes the approved output with [scripts/normalize_output.sh](scripts/normalize_output.sh).
 
 ## Metadata behavior
 
@@ -67,7 +113,8 @@ For each input, the workflow inspects the photo, chooses a safe crop, prepares t
 
 ## Requirements
 
-- Codex with the `imagegen` Skill available
+- An Agent Skills environment that supports `SKILL.md`
+- An image-generation or image-editing tool; `imagegen` is recommended for Codex
 - ImageMagick for final normalization
 - Local access to the input photos
 
