@@ -6,49 +6,51 @@ Turn one photo or a batch of photos into a consistent series of travel-ticket po
 
 The final deliverable for each photo is a clean `1170 × 1560` PNG in a `3:4` aspect ratio. Phone UI, notifications, player controls, and watermarks are excluded from the poster.
 
-## Install for different agents
+## Install
 
-This repository is private. First, make sure your GitHub account has access to it and authenticate GitHub CLI:
+### Ask Codex to install it (recommended)
 
-```bash
-gh auth login
+Send this sentence directly to Codex:
+
+```text
+Please install this Skill from https://github.com/cxcxy/dy-travel-ticket-poster and verify that Codex can discover it after installation.
 ```
 
-Then choose the installation method for the agent you use. You do not need to install the Skill into every directory.
-
-### Codex
+### Manual installation for Codex
 
 ```bash
-mkdir -p ~/.codex/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git
+cd dy-travel-ticket-poster
+mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+cp -R . "${CODEX_HOME:-$HOME/.codex}/skills/dy-travel-ticket-poster"
 ```
 
 ### Claude Code
 
 ```bash
 mkdir -p ~/.claude/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.claude/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.claude/skills/dy-travel-ticket-poster
 ```
 
 ### Cursor
 
 ```bash
 mkdir -p ~/.cursor/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.cursor/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.cursor/skills/dy-travel-ticket-poster
 ```
 
 ### Gemini CLI
 
 ```bash
 mkdir -p ~/.gemini/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.gemini/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.gemini/skills/dy-travel-ticket-poster
 ```
 
 ### GitHub Copilot
 
 ```bash
 mkdir -p ~/.copilot/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.copilot/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.copilot/skills/dy-travel-ticket-poster
 ```
 
 ### Other Agent Skills-compatible agents
@@ -57,10 +59,10 @@ If an agent supports the shared personal Skills directory, install the repositor
 
 ```bash
 mkdir -p ~/.agents/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.agents/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.agents/skills/dy-travel-ticket-poster
 ```
 
-Restart or refresh the relevant agent after installation so it rescans its Skills. Installing this Skill provides the workflow and visual specification only; the agent must also have an image-generation or image-editing tool available. Codex can use the `imagegen` Skill directly, while other agents need an equivalent capability.
+After a manual installation, restart or refresh the relevant agent so it rescans its Skills. Installing this Skill provides the workflow and visual specification only; the agent must also have an image-generation or image-editing tool available. Codex can use the `imagegen` Skill directly, while other agents need an equivalent capability.
 
 ## What the Skill handles
 

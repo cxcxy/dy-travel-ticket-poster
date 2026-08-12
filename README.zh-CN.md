@@ -6,49 +6,51 @@
 
 每张照片最终交付一张 `1170 × 1560`、`3:4`、无透明通道的 PNG。成品中不会保留手机状态栏、通知、播放器控件和水印。
 
-## 安装到不同 Agent
+## 安装
 
-这是一个私有仓库。请先确认当前 GitHub 账号拥有仓库访问权限，并已登录 GitHub CLI：
+### 直接让 Codex 安装（推荐）
 
-```bash
-gh auth login
+把下面这句话直接发给 Codex：
+
+```text
+请帮我安装这个 Skill：https://github.com/cxcxy/dy-travel-ticket-poster，并在安装完成后检查 Codex 是否能够识别它。
 ```
 
-然后选择与你使用的 Agent 对应的一种安装方式即可，不需要重复安装到所有目录。
-
-### Codex
+### Codex 手动安装
 
 ```bash
-mkdir -p ~/.codex/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.codex/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git
+cd dy-travel-ticket-poster
+mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+cp -R . "${CODEX_HOME:-$HOME/.codex}/skills/dy-travel-ticket-poster"
 ```
 
 ### Claude Code
 
 ```bash
 mkdir -p ~/.claude/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.claude/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.claude/skills/dy-travel-ticket-poster
 ```
 
 ### Cursor
 
 ```bash
 mkdir -p ~/.cursor/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.cursor/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.cursor/skills/dy-travel-ticket-poster
 ```
 
 ### Gemini CLI
 
 ```bash
 mkdir -p ~/.gemini/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.gemini/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.gemini/skills/dy-travel-ticket-poster
 ```
 
 ### GitHub Copilot
 
 ```bash
 mkdir -p ~/.copilot/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.copilot/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.copilot/skills/dy-travel-ticket-poster
 ```
 
 ### 其他兼容 Agent Skills 的 Agent
@@ -57,10 +59,10 @@ gh repo clone cxcxy/dy-travel-ticket-poster ~/.copilot/skills/dy-travel-ticket-p
 
 ```bash
 mkdir -p ~/.agents/skills
-gh repo clone cxcxy/dy-travel-ticket-poster ~/.agents/skills/dy-travel-ticket-poster
+git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.agents/skills/dy-travel-ticket-poster
 ```
 
-安装完成后，重新启动或刷新对应 Agent，让它重新扫描 Skills。安装本 Skill 只会提供工作流和版式规范；Agent 还需要具备可用的图片生成或图片编辑工具。Codex 可直接配合 `imagegen` Skill，其他 Agent 需要提供等效能力。
+手动安装完成后，重新启动或刷新对应 Agent，让它重新扫描 Skills。安装本 Skill 只会提供工作流和版式规范；Agent 还需要具备可用的图片生成或图片编辑工具。Codex 可直接配合 `imagegen` Skill，其他 Agent 需要提供等效能力。
 
 ## 能做什么
 
