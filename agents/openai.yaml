@@ -1,4 +1,4 @@
 interface:
   display_name: "DY 旅行票根海报"
-  short_description: "将单张或批量照片稳定转换成统一风格的旅行票根海报成品"
-  default_prompt: "Use $dy-travel-ticket-poster to convert these photos into clean 3:4 travel-ticket posters."
+  short_description: "原图保真、唯一方角虚线与双层阴影的精致旅行票根海报"
+  default_prompt: "使用 $dy-travel-ticket-poster，从原图无损等比裁切照片区，只保留一条方角虚线并用双层阴影制作 3:4 旅行票根海报。"
