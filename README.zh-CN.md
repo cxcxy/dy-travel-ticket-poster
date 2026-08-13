@@ -62,18 +62,19 @@ mkdir -p ~/.agents/skills
 git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.agents/skills/dy-travel-ticket-poster
 ```
 
-手动安装完成后，重新启动或刷新对应 Agent，让它重新扫描 Skills。安装本 Skill 只会提供工作流和版式规范；Agent 还需要具备可用的图片生成或图片编辑工具。Codex 可直接配合 `imagegen` Skill，其他 Agent 需要提供等效能力。
+手动安装完成后，重新启动或刷新对应 Agent，让它重新扫描 Skills。标准票根由本地 Python、Pillow 和粗体字体确定性完成；只有裁切必然损失关键主体、需要扩展无语义环境时，Agent 才需要图片生成或编辑能力。Codex 可在该例外路径使用 `imagegen` Skill。
 
 ## 能做什么
 
 - 保留原图中的人物身份、动物、产品、建筑、车辆和关键动作
 - 在主体完整的前提下保留足够的环境信息
-- 根据每张照片调整海报背景和信息联配色
+- 在最终裁切上生成三套照片环境色方案，目视选择背景、信息联和文字色
+- 用确定性脚本锁定原图像素、文字、条码、几何、虚线、缺口和阴影
 - 优先采用用户给出的标题、地点和日期
 - 地点无法可靠确认时，改用中性场景词
 - 自动生成五位编号、八位装饰码和装饰性条形码
 - 批量处理时每张照片独立出图，同时保持统一版式
-- 将通过检查的成品归一化为 `1170 × 1560` PNG，并保留原始文件
+- 将通过检查的成品输出为 `1170 × 1560` RGB PNG，并保留原始文件
 
 ## 视觉系统
 
@@ -81,11 +82,11 @@ git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.agents/skills/
 
 - 画布比例为 `3:4`
 - 票根水平居中，宽度约占画布的 `90.4%`
-- 票根高度约占画布的 `27.2%`
-- 照片区约占票根宽度的 `74.7%`
-- 信息联约占票根宽度的 `25.3%`
-- 圆角、竖向撕票线、半圆缺口、轻阴影和粗体窄字保持一致
-- 配色随照片变化，信息层级和版式保持不变
+- 票根高度约占画布的 `32.5%`
+- 照片区约占票根宽度的 `73.2%`
+- 信息联约占票根宽度的 `26.8%`
+- 小圆角、唯一方角撕票线、半圆缺口、双层阴影和粗体排版保持一致
+- 背景使用照片环境色的三案筛选，信息层级和版式保持不变
 
 完整的版式参数见 [references/style-spec.md](references/style-spec.md)。
 
@@ -103,7 +104,7 @@ git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.agents/skills/
 使用 $dy-travel-ticket-poster 处理这张照片，标题用 WATERFRONT，日期用 2026 - 08。
 ```
 
-工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 或等效图片工具完成栅格编辑，目视检查结果，再通过 [scripts/normalize_output.sh](scripts/normalize_output.sh) 输出标准尺寸成品。
+工作流会逐张检查照片和最终裁切，使用 [scripts/suggest_palette.py](scripts/suggest_palette.py) 生成三套可追溯的配色预览，目视选择后由 [scripts/render_ticket_poster.py](scripts/render_ticket_poster.py) 确定性合成，再通过 [scripts/validate_ticket_output.py](scripts/validate_ticket_output.py) 检查原图像素、背景纯色、颜色层级、文字对比和票根结构。只有裁切必然损失关键主体时，才调用 `imagegen` 扩展无语义环境。
 
 ## 信息生成规则
 
@@ -116,19 +117,22 @@ git clone https://github.com/cxcxy/dy-travel-ticket-poster.git ~/.agents/skills/
 ## 环境要求
 
 - 支持 `SKILL.md` 的 Agent Skills 环境
-- 可用的图片生成或图片编辑工具；Codex 推荐使用 `imagegen` Skill
-- 本地安装 ImageMagick，用于最终尺寸归一化
+- Python 3.10+、`requirements.txt` 中声明的 Pillow，以及可用的粗体 TTF/OTF/TTC 字体；同批建议固定字体路径，成品会内嵌字体名称与 SHA-256 供验证
+- 只有需要扩展无语义环境时才需要图片生成或编辑工具；Codex 可使用 `imagegen` Skill
+- ImageMagick 仅用于旧成品的兼容归一化路径
 - 本地可以访问需要处理的原始照片
 
-成品通过目视检查后，可以单独运行归一化脚本。
+先生成配色候选与预览：
 
 ```bash
-bash scripts/normalize_output.sh generated-image.png final-ticket.png
+python3 scripts/suggest_palette.py --input source.jpg --output-json palette.json --preview palette-review.png
 ```
+
+完整渲染和验证命令见 [SKILL.md](SKILL.md)。
 
 ## 参考案例
 
-下面展示本次提供的原始照片和对应票根成品。文档预览图已统一缩小并移除元数据，实际工作流输出仍为 `1170 × 1560` PNG。
+下面展示原始照片和早期视觉案例。它们用于说明照片派生配色和整体方向，不是新版像素验证金样；新版实际输出为 `1170 × 1560` RGB PNG，并以 `SKILL.md`、视觉规范和验证器为准。
 
 ### 01 · 咖啡吧台
 
@@ -247,9 +251,16 @@ bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ├── SKILL.md
 ├── agents/openai.yaml
 ├── assets/cases/
-├── references/prompt-template.md
-├── references/style-spec.md
-└── scripts/normalize_output.sh
+├── references/
+│   ├── palette-system.md
+│   ├── prompt-template.md
+│   └── style-spec.md
+├── scripts/
+│   ├── suggest_palette.py
+│   ├── render_ticket_poster.py
+│   ├── validate_ticket_output.py
+│   └── normalize_reference_layout.py
+└── requirements.txt
 ```
 
 ## 内容边界
