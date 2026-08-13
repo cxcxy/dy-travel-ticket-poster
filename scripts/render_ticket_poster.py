@@ -61,6 +61,16 @@ BOLD_FONT_CANDIDATES = (
     "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
     "C:/Windows/Fonts/arialbd.ttf",
 )
+LIGHT_MONO_FONT_CANDIDATES = (
+    # The reference body copy uses a narrow, low-contrast monospaced face.
+    # SF Mono resolves to its Light instance on macOS; the remaining entries
+    # preserve the same typographic role on other common platforms.
+    "/System/Library/Fonts/SFNSMono.ttf",
+    "/System/Library/Fonts/Supplemental/Andale Mono.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/usr/share/fonts/truetype/liberation2/LiberationMono-Regular.ttf",
+    "C:/Windows/Fonts/consola.ttf",
+)
 CJK_FONT_CANDIDATES = (
     "/System/Library/Fonts/PingFang.ttc",
     "/System/Library/Fonts/STHeiti Medium.ttc",
@@ -82,6 +92,19 @@ def _font_path(requested: Path | None, heavy: bool, needs_cjk: bool = False) -> 
             return candidate
     raise FileNotFoundError(
         "no suitable bold font found; pass --font with a local TTF, OTF or TTC file"
+    )
+
+
+def _body_font_path(requested: Path | None) -> str:
+    if requested:
+        if not requested.is_file():
+            raise FileNotFoundError(f"body font does not exist: {requested}")
+        return str(requested)
+    for candidate in LIGHT_MONO_FONT_CANDIDATES:
+        if Path(candidate).is_file():
+            return candidate
+    raise FileNotFoundError(
+        "no suitable light monospaced font found; pass --body-font with a local TTF, OTF or TTC file"
     )
 
 
@@ -211,7 +234,7 @@ def _draw_barcode(
         value = digest[index % len(digest)]
         bar_width = 2 + value % 4
         gap = 2 + (value // 4) % 3
-        bar_height = height - (value % 3) * 3
+        bar_height = height
         if cursor + bar_width > x_pos + maximum_width:
             break
         draw.rectangle(
@@ -231,6 +254,7 @@ def build_stub(
     stub_color: RGB,
     text_color: RGB,
     requested_font: Path | None = None,
+    requested_body_font: Path | None = None,
 ) -> tuple[Image.Image, dict[str, str]]:
     """Build the exact deterministic information stub and font identity."""
     stub = Image.new("RGB", (STUB_W, TICKET_H), stub_color)
@@ -238,7 +262,7 @@ def build_stub(
     raw_title = " ".join(title_lines or [title or ""])
     needs_cjk = any(ord(character) > 127 for character in raw_title)
     title_font_path = _font_path(requested_font, heavy=True, needs_cjk=needs_cjk)
-    body_font_path = _font_path(requested_font, heavy=False, needs_cjk=False)
+    body_font_path = _body_font_path(requested_body_font)
     lines = _prepare_title_lines(title, title_lines, draw, title_font_path)
     title_font = _fit_title_font(lines, draw, title_font_path)
     title_box = draw.textbbox((0, 0), "Ag", font=title_font)
@@ -308,6 +332,7 @@ def render(
     photo_center_y: float,
     requested_font: Path | None = None,
     strip_neutral_borders: bool = True,
+    requested_body_font: Path | None = None,
 ) -> dict[str, str]:
     if output_path.exists():
         raise FileExistsError(f"output already exists: {output_path}")
@@ -328,6 +353,7 @@ def render(
         stub_color,
         text_color,
         requested_font,
+        requested_body_font,
     )
     ticket = Image.new("RGB", (TICKET_W, TICKET_H), stub_color)
     ticket.paste(photo, (0, 0))
@@ -387,6 +413,11 @@ def main() -> None:
     parser.add_argument("--photo-center-y", type=float, default=0.5)
     parser.add_argument("--font", type=Path)
     parser.add_argument(
+        "--body-font",
+        type=Path,
+        help="Light monospaced font for the date, number and serial code",
+    )
+    parser.add_argument(
         "--keep-neutral-borders",
         action="store_true",
         help="Preserve intentional solid white/black framing at the photo edge",
@@ -428,19 +459,20 @@ def main() -> None:
         )
 
     metadata = render(
-        args.photo_source,
-        args.output,
-        args.title,
-        args.title_lines,
-        args.date,
-        number,
-        code,
-        background,
-        stub,
-        text_color,
-        args.photo_center_y,
-        args.font,
-        not args.keep_neutral_borders,
+        photo_source_path=args.photo_source,
+        output_path=args.output,
+        title=args.title,
+        title_lines=args.title_lines,
+        date=args.date,
+        number=number,
+        code=code,
+        background_color=background,
+        stub_color=stub,
+        text_color=text_color,
+        photo_center_y=args.photo_center_y,
+        requested_font=args.font,
+        strip_neutral_borders=not args.keep_neutral_borders,
+        requested_body_font=args.body_font,
     )
     print(
         json.dumps(

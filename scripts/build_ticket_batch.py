@@ -19,6 +19,7 @@ def build_ticket(
     output_dir: Path,
     requested_font: Path | None = None,
     overwrite: bool = False,
+    requested_body_font: Path | None = None,
 ) -> Path:
     source_path = Path(str(item["source"]))
     output_path = output_dir / str(item["filename"])
@@ -45,6 +46,7 @@ def build_ticket(
         float(item.get("photo_center_y", 0.5)),
         requested_font,
         bool(item.get("strip_neutral_borders", True)),
+        requested_body_font,
     )
     return output_path
 
@@ -76,12 +78,19 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--contact-sheet", type=Path)
     parser.add_argument("--font", type=Path)
+    parser.add_argument("--body-font", type=Path)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     outputs = [
-        build_ticket(item, args.output_dir, args.font, overwrite=args.overwrite)
+        build_ticket(
+            item,
+            args.output_dir,
+            args.font,
+            overwrite=args.overwrite,
+            requested_body_font=args.body_font,
+        )
         for item in manifest["items"]
     ]
     if args.contact_sheet:

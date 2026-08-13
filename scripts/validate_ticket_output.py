@@ -65,6 +65,7 @@ def _validate_stub_exact(
     text: RGB,
     perforation: RGB,
     requested_font: Path | None = None,
+    requested_body_font: Path | None = None,
     expected_title: str | None = None,
     expected_title_lines: list[str] | None = None,
     expected_date: str | None = None,
@@ -104,66 +105,57 @@ def _validate_stub_exact(
     number = expected_number or metadata["dy_ticket_number"]
     code = expected_code or metadata["dy_ticket_code"]
 
-    # Locate the exact font files by their embedded hashes. The renderer uses a
-    # single explicit font when --font is passed; otherwise it may use separate
-    # title/body fonts. Exact reconstruction therefore requires both files.
+    # Locate the exact title and body font files by their embedded hashes.
+    # They are independent typographic roles and must both be reproducible.
     from render_ticket_poster import (
         BOLD_FONT_CANDIDATES,
         CJK_FONT_CANDIDATES,
         HEAVY_FONT_CANDIDATES,
+        LIGHT_MONO_FONT_CANDIDATES,
     )
 
     available = []
-    for candidate in (*HEAVY_FONT_CANDIDATES, *BOLD_FONT_CANDIDATES, *CJK_FONT_CANDIDATES):
+    for candidate in (
+        *HEAVY_FONT_CANDIDATES,
+        *BOLD_FONT_CANDIDATES,
+        *CJK_FONT_CANDIDATES,
+        *LIGHT_MONO_FONT_CANDIDATES,
+    ):
         path = Path(candidate)
         if path.is_file() and path not in available:
             available.append(path)
+    for requested in (requested_font, requested_body_font):
+        if requested is not None:
+            if not requested.is_file():
+                raise ValueError(f"validation font does not exist: {requested}")
+            if requested not in available:
+                available.append(requested)
+    if requested_font is not None and file_sha256(requested_font) != metadata[
+        "dy_ticket_title_font_sha256"
+    ]:
+        raise ValueError("validation title font does not match recorded title font")
+    if requested_body_font is not None and file_sha256(requested_body_font) != metadata[
+        "dy_ticket_body_font_sha256"
+    ]:
+        raise ValueError("validation body font does not match recorded body font")
     hash_to_path = {file_sha256(path): path for path in available}
-    if requested_font is not None:
-        if not requested_font.is_file():
-            raise ValueError(f"validation font does not exist: {requested_font}")
-        requested_hash = file_sha256(requested_font)
-        title_font_path = (
-            requested_font
-            if requested_hash == metadata["dy_ticket_title_font_sha256"]
-            else None
-        )
-        body_font_path = (
-            requested_font
-            if requested_hash == metadata["dy_ticket_body_font_sha256"]
-            else None
-        )
-    else:
-        title_font_path = hash_to_path.get(metadata["dy_ticket_title_font_sha256"])
-        body_font_path = hash_to_path.get(metadata["dy_ticket_body_font_sha256"])
+    title_font_path = hash_to_path.get(metadata["dy_ticket_title_font_sha256"])
+    body_font_path = hash_to_path.get(metadata["dy_ticket_body_font_sha256"])
     if title_font_path is None or body_font_path is None:
         raise ValueError(
             "cannot reconstruct the exact stub because its recorded font file is unavailable"
         )
-    if title_font_path != body_font_path:
-        # build_stub accepts one explicit font. Reconstruct with its normal
-        # deterministic selection, after verifying the selected files match.
-        expected_stub, identity = build_stub(
-            title,
-            title_lines,
-            date,
-            number,
-            code,
-            stub,
-            text,
-            None,
-        )
-    else:
-        expected_stub, identity = build_stub(
-            title,
-            title_lines,
-            date,
-            number,
-            code,
-            stub,
-            text,
-            title_font_path,
-        )
+    expected_stub, identity = build_stub(
+        title,
+        title_lines,
+        date,
+        number,
+        code,
+        stub,
+        text,
+        title_font_path,
+        body_font_path,
+    )
     if identity["title_font_sha256"] != metadata["dy_ticket_title_font_sha256"]:
         raise ValueError("title font identity changed during exact-stub reconstruction")
     if identity["body_font_sha256"] != metadata["dy_ticket_body_font_sha256"]:
@@ -381,6 +373,7 @@ def validate(
     expected_date: str | None = None,
     expected_number: str | None = None,
     expected_code: str | None = None,
+    body_font_path: Path | None = None,
 ) -> list[str]:
     with Image.open(output_path) as opened:
         if opened.format != "PNG" or output_path.suffix.lower() != ".png":
@@ -514,6 +507,7 @@ def validate(
             expected_text,
             perforation_color,
             font_path,
+            body_font_path,
             strict_title,
             strict_title_lines,
             strict_date,
@@ -547,6 +541,7 @@ def main() -> None:
     )
     parser.add_argument("--require-renderer-metadata", action="store_true")
     parser.add_argument("--font", type=Path)
+    parser.add_argument("--body-font", type=Path)
     expected_title_group = parser.add_mutually_exclusive_group()
     expected_title_group.add_argument("--expected-title")
     expected_title_group.add_argument(
@@ -580,22 +575,23 @@ def main() -> None:
         expected_stub = expected_stub or palette_stub
         expected_text = expected_text or palette_text
     warnings = validate(
-        args.output,
-        args.photo_source,
-        args.photo_center_y,
-        expected_background,
-        expected_stub,
-        expected_text,
-        args.expected_perforation_color,
-        args.palette_mode,
-        args.require_renderer_metadata,
-        not args.keep_neutral_borders,
-        args.font,
-        args.expected_title,
-        args.expected_title_lines,
-        args.expected_date,
-        args.expected_number,
-        args.expected_code,
+        output_path=args.output,
+        source_path=args.photo_source,
+        photo_center_y=args.photo_center_y,
+        expected_background=expected_background,
+        expected_stub=expected_stub,
+        expected_text=expected_text,
+        expected_perforation=args.expected_perforation_color,
+        palette_mode=args.palette_mode,
+        require_renderer_metadata=args.require_renderer_metadata,
+        strip_neutral_borders=not args.keep_neutral_borders,
+        font_path=args.font,
+        expected_title=args.expected_title,
+        expected_title_lines=args.expected_title_lines,
+        expected_date=args.expected_date,
+        expected_number=args.expected_number,
+        expected_code=args.expected_code,
+        body_font_path=args.body_font,
     )
     for warning in warnings:
         print(f"WARN: {warning}")

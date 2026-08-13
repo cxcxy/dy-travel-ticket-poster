@@ -13,6 +13,7 @@ description: Convert one or more user-supplied PNG/JPG photos into premium 3:4 t
 - 每张输入独立输出一张 `1170 × 1560`、严格 `3:4`、RGB、无透明通道的 PNG。
 - 保留人物身份、动物、产品、建筑、车辆、招牌、文字和关键动作。照片面板必须直接来自本次确认的可见像素源，只进行 EXIF 方向修正、透明区域安全铺底、明确外框条清理、等比例裁切和 Lanczos 下采样；不重绘语义内容。
 - 锁定票根主体 `x=55, y=501, width=1057, height=507`，形成 `55px / 58px` 左右外边距；照片区为 `774 × 507`，信息联为 `283 × 507`。
+- 标题使用粗体；日期、编号和 8 位序列码使用独立的细窄等宽轻字重字体。装饰条形码的所有竖条必须统一为 `43px` 高，顶部与底部各自齐平，不得参差。
 - 每张图先生成三套照片派生配色并目视选择。不得把“低饱和”误当作唯一高级感，也不得跨图片套用通用米色、灰绿或蓝色。
 - 标准路径不调用图片生成工具。只有裁切必然切掉关键主体、确实需要扩展无语义环境时，才加载 `imagegen` Skill 并使用例外提示词。
 
@@ -77,10 +78,11 @@ python3 scripts/render_ticket_poster.py \
   --code E5R8K3M2 \
   --palette-json source-palette.json \
   --palette-candidate editorial-mid \
-  --font "/absolute/path/to/pinned-bold-font.ttf"
+  --font "/absolute/path/to/pinned-bold-font.ttf" \
+  --body-font "/absolute/path/to/pinned-light-mono-font.ttf"
 ```
 
-需要固定换行时，使用一到两次 `--title-line` 替代 `--title`。用户明确指定颜色时，直接传入 `--background-color`、`--stub-color`、`--text-color`；仍须满足文字对比和画布/信息联层级。同一批次固定传入同一个本地粗体 TTF/OTF/TTC；未传 `--font` 时脚本会选择可用字体，并把标题/正文字体名称与文件 SHA-256 永久写入 PNG 和命令输出，方便复现与审计。不得退回生成模型拼写文字。
+需要固定换行时，使用一到两次 `--title-line` 替代 `--title`。用户明确指定颜色时，直接传入 `--background-color`、`--stub-color`、`--text-color`；仍须满足文字对比和画布/信息联层级。同一批次分别固定传入粗体标题字体 `--font` 与细窄等宽正文字体 `--body-font`；未传时脚本会为两种层级各自选择可用字体，并把名称与文件 SHA-256 永久写入 PNG 和命令输出，方便复现与审计。不得退回生成模型拼写文字。
 
 脚本始终拒绝覆盖已有输出。使用可读、版本化的新文件名；不要覆盖唯一原图、配色 JSON 或已确认成品。
 
@@ -90,6 +92,7 @@ python3 scripts/render_ticket_poster.py \
 
 - 主体、裁切、身份、数量、动作、招牌和原图文字无变化。
 - 背景安静但不灰脏；信息联与背景有清楚层级；文字舒展、没有挤入缺口。
+- 日期、编号和序列码呈细窄等宽轻字重；条形码所有竖条等高、上下齐平，没有阶梯状顶部。
 - 画面只有一个水平票根、一条方角虚线和一个右侧半圆缺口。
 - 双层阴影落地、连续、克制；没有发光、描边或第二张卡片。
 - 没有飞机、地图、指南针、邮戳、护照章、QR 码、价格、额外微缩字、手机 UI 或水印。
@@ -105,6 +108,7 @@ python3 scripts/validate_ticket_output.py \
   --palette-candidate editorial-mid \
   --palette-mode adaptive \
   --font "/absolute/path/to/pinned-bold-font.ttf" \
+  --body-font "/absolute/path/to/pinned-light-mono-font.ttf" \
   --expected-title "OLD TOWN" \
   --expected-date "2026 - 08" \
   --expected-number 19427 \
@@ -114,7 +118,7 @@ python3 scripts/validate_ticket_output.py \
 
 验证命令里的外部标题、日期、编号、代码必须与渲染参数逐字对应；渲染使用 `--title-line` 时，验证也改为一到两次 `--expected-title-line`。严格模式拒绝缺少任一背景/信息联/文字色或票面文字合同，不能只相信 PNG 自报元数据。
 
-验证器硬检查 PNG/RGB、尺寸、源文件哈希与裁切配方、外部票面文字合同、字体身份、原图像素回归、画布和阴影全部外露像素、信息联逐像素重建、唯一虚线、顶部方角首段、透明通道、背景/信息联最低分离度和文字对比。`WARN` 代表超出默认审美软区间，必须结合预览目视确认；任何错误都禁止交付。
+验证器硬检查 PNG/RGB、尺寸、源文件哈希与裁切配方、外部票面文字合同、标题/正文字体身份、等高条形码、原图像素回归、画布和阴影全部外露像素、信息联逐像素重建、唯一虚线、顶部方角首段、透明通道、背景/信息联最低分离度和文字对比。`WARN` 代表超出默认审美软区间，必须结合预览目视确认；任何错误都禁止交付。
 
 用户指定背景色时改用精确 `--expected-background-color`、`--expected-stub-color`、`--expected-text-color` 和 `--palette-mode user-specified`。
 

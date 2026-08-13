@@ -26,7 +26,8 @@ The poster uses a restrained, repeatable layout.
 - The nominal ticket body is `1057 × 507px` at `x=55, y=501`
 - Outer margins are locked to the measured reference at `55px` left and `58px` right; ticket width is `90.4%` of the canvas
 - The photo panel occupies about `73.2%` of the ticket width and the information stub about `26.8%`
-- Rounded corners, a vertical perforation, a semicircular notch, a soft shadow, and bold condensed text stay consistent across the series
+- Rounded corners, a vertical perforation, a semicircular notch, and a soft shadow stay consistent; titles use a bold face while dates, numbers, and serial codes use a light condensed monospaced face
+- Decorative barcode bars are uniformly `43px` high; only bar widths and gaps vary, never their top alignment
 - Exactly one square-ended perforation divider is allowed, with its first dash flush at the ticket top
 - A tight contact shadow plus a wider ambient shadow grounds the complete ticket
 - The canvas uses a flat environment-derived color; the default editorial soft range is OKLCH `L=0.64–0.78, C=0.02–0.08`
@@ -60,7 +61,7 @@ git submodule add https://github.com/cxcxy/dy-travel-ticket-poster.git \
 git submodule update --init --recursive
 ```
 
-For a private submodule, the GitHub account connected to Codex Cloud must also have read access. The standard poster path is deterministic and uses local Python, Pillow, and a pinned bold font; image generation or editing is only needed when essential content cannot survive the crop and non-semantic scenery must be extended.
+For a private submodule, the GitHub account connected to Codex Cloud must also have read access. The standard poster path is deterministic and uses local Python, Pillow, a pinned bold title font, and a pinned light monospaced body font; image generation or editing is only needed when essential content cannot survive the crop and non-semantic scenery must be extended.
 
 ### Claude Code and other Agent Skills tools
 
@@ -115,7 +116,7 @@ For each input, the workflow inspects the photo and final crop, uses [scripts/su
 ## Requirements
 
 - An Agent Skills environment that supports `SKILL.md`
-- Python 3.10+, the Pillow version declared in `requirements.txt`, and an available bold TTF/OTF/TTC font
+- Python 3.10+, the Pillow version declared in `requirements.txt`, and available bold-title plus light-monospaced-body TTF/OTF/TTC fonts
 - An image-generation or image-editing tool only for exceptional non-semantic scenery extension
 - Local access to the input photos
 

@@ -8,12 +8,12 @@ import json
 import tempfile
 import unittest
 
-from PIL import Image, ImageDraw, PngImagePlugin
+from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 
 from normalize_reference_layout import normalize
 from palette_utils import load_palette_candidate, parse_hex_color
 from recolor_existing_poster import recolor
-from render_ticket_poster import render
+from render_ticket_poster import _body_font_path, _font_path, render
 from suggest_palette import suggest_palettes
 from validate_ticket_output import validate
 
@@ -104,6 +104,61 @@ class TicketPipelineTests(unittest.TestCase):
             expected_code="E5R8K3M2",
         )
         self.assertIsInstance(warnings, list)
+
+    def test_body_copy_uses_a_separate_light_mono_font(self) -> None:
+        output, _, _, _ = self._render()
+        with Image.open(output) as opened:
+            metadata = dict(opened.info)
+        self.assertNotEqual(
+            metadata["dy_ticket_title_font_sha256"],
+            metadata["dy_ticket_body_font_sha256"],
+        )
+        body_font = ImageFont.truetype(_body_font_path(None), 27)
+        self.assertEqual(body_font.getlength("1"), body_font.getlength("W"))
+
+    def test_strict_validation_rejects_the_wrong_body_font(self) -> None:
+        output, background, stub, text = self._render()
+        with self.assertRaisesRegex(ValueError, "validation body font"):
+            validate(
+                output,
+                self.source,
+                0.5,
+                background,
+                stub,
+                text,
+                background,
+                "adaptive",
+                True,
+                expected_title="OLD TOWN",
+                expected_date="2026 - 08",
+                expected_number="NO.19427",
+                expected_code="E5R8K3M2",
+                body_font_path=Path(_font_path(None, heavy=True)),
+            )
+
+    def test_rendered_barcode_bars_are_uniform_height(self) -> None:
+        output, _, _, text = self._render()
+        with Image.open(output) as opened:
+            rendered = opened.convert("RGB")
+
+        # Geometry is part of the public poster specification: the ticket starts
+        # at (55, 501), while the barcode starts at local (822, 420) and is 43px
+        # high within a 192px-wide area.
+        barcode_left = 55 + 822
+        barcode_top = 501 + 420
+        barcode_height = 43
+        barcode_width = 192
+        observed_heights = set()
+        for x_pos in range(barcode_left, barcode_left + barcode_width):
+            text_rows = [
+                y_pos
+                for y_pos in range(barcode_top, barcode_top + barcode_height)
+                if rendered.getpixel((x_pos, y_pos)) == text
+            ]
+            if text_rows:
+                observed_heights.add(max(text_rows) - min(text_rows) + 1)
+
+        self.assertEqual(observed_heights, {barcode_height})
 
     def test_strict_validation_requires_external_palette_and_text_contracts(self) -> None:
         output, background, stub, text = self._render()
