@@ -56,6 +56,12 @@
 | `cotton_paper_top_glow` | 棉纸顶光 | 天然棉纸、对称顶光 |
 | `caramel_mineral_spotlight` | 焦糖矿物聚光 | 深焦糖矿物墙、左上聚光 |
 
+最常见的使用方式就是：上传一张或一组照片，再选择上面的一种风格。可以说“第10种”、中文名或 `style_id`。单图输出一张票根；多图默认锁定同一风格、背景底图、强度、光线和阴影，逐张输出独立票根，不拼图、不随机换风格。
+
+```text
+把这一组图片分别做成票根，全部使用第10种，其他按默认。
+```
+
 直接调用：
 
 ```text
@@ -73,7 +79,7 @@
 ```bash
 python3 scripts/background_style_system.py validate
 python3 scripts/background_style_system.py recommend --context "高级温暖的旅行票根" --count 10
-python3 scripts/background_style_system.py prompt --style-id ivory_travertine_diagonal --strength balanced
+python3 scripts/background_style_system.py prompt --style-id "第10种" --strength balanced
 python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/gallery"
 ```
 

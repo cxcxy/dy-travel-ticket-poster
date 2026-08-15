@@ -20,9 +20,49 @@ from normalize_reference_layout import (  # noqa: E402
     TICKET_Y,
     normalize,
 )
+from build_ticket_batch import build_ticket  # noqa: E402
 
 
 class StyledBackgroundCompositeTests(unittest.TestCase):
+    def test_batch_reuses_one_background_plate_but_keeps_distinct_photos(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            background = root / "background.png"
+            red_photo = root / "red.png"
+            green_photo = root / "green.png"
+            Image.new("RGB", CANVAS_SIZE, (219, 207, 189)).save(background)
+            Image.new("RGB", (1200, 900), (210, 32, 28)).save(red_photo)
+            Image.new("RGB", (1200, 900), (24, 180, 70)).save(green_photo)
+
+            base = {
+                "style_id": "ivory_travertine_diagonal",
+                "title_lines": ["BATCH", "TEST"],
+                "date": "2026 - 08",
+                "number": "NO.12345",
+                "code": "A1B2C3D4",
+                "stub_color": "#543719",
+                "background_image": str(background),
+                "shadow_preset": "architectural",
+            }
+            first = build_ticket(
+                {**base, "source": str(red_photo), "filename": "red-ticket.png"},
+                root,
+            )
+            second = build_ticket(
+                {**base, "source": str(green_photo), "filename": "green-ticket.png"},
+                root,
+            )
+            first_image = Image.open(first).convert("RGB")
+            second_image = Image.open(second).convert("RGB")
+
+            self.assertEqual(
+                first_image.crop((0, 0, CANVAS_SIZE[0], 350)).tobytes(),
+                second_image.crop((0, 0, CANVAS_SIZE[0], 350)).tobytes(),
+            )
+            photo_point = (TICKET_X + PHOTO_W // 2, TICKET_Y + TICKET_H // 2)
+            self.assertEqual(first_image.getpixel(photo_point), (210, 32, 28))
+            self.assertEqual(second_image.getpixel(photo_point), (24, 180, 70))
+
     def test_legacy_solid_background_still_works(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

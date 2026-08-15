@@ -57,6 +57,19 @@ class BackgroundStyleSystemTests(unittest.TestCase):
         self.assertEqual(resolved["strength"]["requested"], 0.75)
         self.assertEqual(resolved["strength"]["effective"], 0.6)
 
+    def test_style_selector_accepts_order_chinese_name_and_id(self) -> None:
+        selectors = (
+            "第10种",
+            "第十种",
+            "象牙洞石斜光",
+            "ivory_travertine_diagonal",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                resolved = resolve_style(self.registry, selector)
+                self.assertEqual(resolved["style_id"], "ivory_travertine_diagonal")
+                self.assertEqual(resolved["requested_style"], selector)
+
     def test_recommender_prefers_context_and_diversity(self) -> None:
         results = recommend_styles(self.registry, "给我 10 个高级旅行票根背景方案", 10)
         ids = [item["style_id"] for item in results]

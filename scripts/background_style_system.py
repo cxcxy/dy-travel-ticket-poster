@@ -50,6 +50,20 @@ REQUIRED_STYLE_FIELDS = (
 )
 HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+CHINESE_STYLE_ORDERS = {
+    "一": 1,
+    "二": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+    "十": 10,
+    "十一": 11,
+    "十二": 12,
+}
 
 
 def load_registry(path: Path = DEFAULT_REGISTRY) -> dict[str, Any]:
@@ -194,6 +208,34 @@ def _strength_value(registry: dict[str, Any], style: dict[str, Any], value: str 
     return requested, effective
 
 
+def canonical_style_id(registry: dict[str, Any], selector: str) -> str | None:
+    """Resolve an ID, exact Chinese name, or gallery order such as 第10种."""
+    styles = registry["styles"]
+    query = selector.strip()
+    if query in styles:
+        return query
+    normalized = query.casefold().replace("-", "_")
+    for style_id, style in styles.items():
+        if normalized == style_id.casefold() or query.casefold() == style["name"].casefold():
+            return style_id
+
+    numeric = re.fullmatch(
+        r"(?:第\s*)?(?:style\s*)?#?\s*(\d{1,2})\s*(?:种|款|号|style)?",
+        query,
+        flags=re.IGNORECASE,
+    )
+    order: int | None = int(numeric.group(1)) if numeric else None
+    if order is None:
+        chinese = re.fullmatch(r"第?([一二三四五六七八九十]{1,2})(?:种|款|号)?", query)
+        if chinese:
+            order = CHINESE_STYLE_ORDERS.get(chinese.group(1))
+    if order is not None:
+        for style_id, style in styles.items():
+            if style.get("reference_anchor", {}).get("order") == order:
+                return style_id
+    return None
+
+
 def resolve_style(
     registry: dict[str, Any],
     style_id: str,
@@ -203,10 +245,15 @@ def resolve_style(
     preservation: str = "strict",
     temperature_shift: int = 0,
 ) -> dict[str, Any]:
-    if style_id not in registry["styles"]:
-        suggestions = recommend_styles(registry, style_id, 3)
+    requested_style = style_id
+    canonical = canonical_style_id(registry, requested_style)
+    if canonical is None:
+        suggestions = recommend_styles(registry, requested_style, 3)
         names = ", ".join(item["style_id"] for item in suggestions)
-        raise ValueError(f"unknown style_id {style_id!r}; nearby recommendations: {names}")
+        raise ValueError(
+            f"unknown style selector {requested_style!r}; nearby recommendations: {names}"
+        )
+    style_id = canonical
     style = registry["styles"][style_id]
     requested, effective = _strength_value(registry, style, strength)
     lighting_id = lighting or style["lighting"]["recommended_preset"]
@@ -221,6 +268,7 @@ def resolve_style(
         raise ValueError("temperature_shift must be between -100 and 100")
     return {
         "style_id": style_id,
+        "requested_style": requested_style,
         "style": style,
         "strength": {"requested": requested, "effective": effective},
         "lighting": {"preset": lighting_id, **registry["lighting_presets"][lighting_id]},
@@ -387,7 +435,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     for command in ("resolve", "prompt"):
         child = subparsers.add_parser(command)
-        child.add_argument("--style-id", required=True)
+        child.add_argument(
+            "--style-id",
+            required=True,
+            help="Canonical ID, exact Chinese style name, or gallery order such as 第10种",
+        )
         child.add_argument("--strength", default="balanced")
         child.add_argument("--lighting")
         child.add_argument("--shadow")

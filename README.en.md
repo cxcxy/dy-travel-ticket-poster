@@ -52,6 +52,8 @@ cream_limewash_diffusion       ivory_travertine_diagonal
 cotton_paper_top_glow          caramel_mineral_spotlight
 ```
 
+The primary workflow is: attach one photo or a batch, then choose one of the 12 styles by gallery order, exact display name, or canonical `style_id`. A single input produces one ticket. A batch locks one style, background plate, intensity, lighting, and shadow across all inputs, then exports one independent ticket per photo without making a collage or randomly changing styles.
+
 Example:
 
 ```text
@@ -63,7 +65,7 @@ The deterministic helper validates the registry, recommends diverse styles, reso
 ```bash
 python3 scripts/background_style_system.py validate
 python3 scripts/background_style_system.py recommend --context "premium warm travel ticket" --count 10
-python3 scripts/background_style_system.py prompt --style-id ivory_travertine_diagonal --strength balanced
+python3 scripts/background_style_system.py prompt --style-id "第10种" --strength balanced
 python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/gallery"
 ```
 
