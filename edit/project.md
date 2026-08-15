@@ -421,3 +421,11 @@
 - 验证：HTML 无重复 id，section 顺序为 `cases → default → gallery → usage → update`；`docs/app.js`、`docs/style-data.js`、`docs/carousel-data.js` 通过 Node 语法检查；`git diff --check` 通过。已在 Codex 浏览器面板打开本地页面供目视复核。
 - 输出：`docs/index.html`、`docs/styles.css`、`README.md`、`README.en.md`。
 - Git 边界：仍只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。
+
+## 2026-08-15 · README 改为小白使用说明
+
+- 用户要求：去除面向维护者的专业细节，文档只说明普通用户如何开始、选择风格、批量处理和提出修改。
+- 文档调整：重写 `README.md` 与 `README.en.md`，保留参考案例和 12 种风格名称，移除部署、脚本、注册表、哈希、字体、渲染参数、仓库结构等内部维护章节；将安装说明压缩为 Codex 里的直接使用提示。
+- 保留边界：技术规范仍保留在 `SKILL.md` 与 `references/`，不影响 Skill 执行；公开 README 只承担入门和使用说明。
+- 验证：中英文 README 均保留 11 组案例图片且路径存在；更新说明仍位于文档末尾；`git diff --check` 通过。
+- Git 边界：仍只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。
