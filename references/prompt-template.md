@@ -1,58 +1,31 @@
 # 图片编辑提示词模板
 
-每张照片单独处理。先判断使用默认轻质感纯色背景还是显式图集风格背景；不要把两套背景要求同时写进一条提示词。
+标准票根不得依赖图片模型生成几何、文字、条码或背景色；这些层统一由 `render_ticket_poster.py` 或 `build_ticket_batch.py` 确定性完成。每张照片单独处理，先判断使用默认轻质感纯色背景还是显式图集风格背景；不要把两套背景要求同时写进一条提示词。
 
-## A. 票根主体预览
+## A. 无语义环境扩展
 
-将方括号内容替换为当前照片的真实信息。风格模式下，这张预览的外部背景只是临时占位，最终会被独立背景底图替换。
+只有最终 `774 × 507` 裁切必然切掉关键主体，且无法用 `photo-center-y` 解决时，才使用图片模型扩展无语义环境。模型只输出自然照片，不生成票根、背景画布、信息联、标题、日期、编号、条码、虚线、缺口或阴影。
 
 ```text
-Use case: style-transfer.
-Asset type: clean 3:4 portrait travel, coffee, or movie ticket poster PNG.
+Use case: constrained outpainting of non-semantic scenery only.
+Image 1 is the only source image and the only semantic authority.
 
-Input images:
-- Image 1 is the edit target and the only source photograph.
-- Any additional image is a composition reference only. Do not copy its photograph, text, logo, watermark, phone UI, or identifying content.
+Locked source content:
+[List the exact people, faces, hands, animals, products, vehicles, buildings, signs, text, actions and relationships that must remain pixel-faithful and unchanged.]
 
-[SUBJECT PRESERVATION — STRICT]
-Preserve the original subject exactly. Do not redesign the ticket, card, photo, people, faces, products, vehicles, buildings or key actions. Keep original identity, object count, lighting, textures and relationships unchanged. Do not invent semantic content.
+Permitted extension zones:
+[State the exact edges that may be extended and name only the non-semantic material present there, such as plain sky, distant water, blank wall, ground, soft foliage or shallow-depth-of-field background.]
 
-[CANVAS AND GEOMETRY]
-- Strict 3:4 portrait composition, 1170 x 1560.
-- One ticket at x=55, y=501, width=1057, height=507.
-- Lock outer margins to 55 px left and 58 px right.
-- Photo panel: 774 x 507, 73.2% of ticket width.
-- Information stub: 283 x 507, 26.8% of ticket width.
-- Small rounded corners on the ticket outer silhouette only.
-- Exactly one vertical perforation divider at the seam. Use square-ended rectangle dashes; start the first dash flush at the ticket top. Never add a second dotted line, bright seam, border or divider shadow.
-- Add one centered semicircular inward notch on the far-right edge.
-- No border.
-
-[PHOTO INVARIANTS AND CROP]
-[Describe the exact people, animals, products, vehicles, buildings, actions and relationships that must remain unchanged.]
-Use only Image 1 for the photo panel. Crop intelligently to 774 x 507, about 1.53:1, without stretching or recompressing. The production step will replace this preview panel with original source pixels; do not let typography, divider artifacts, gradients or shadows spill into the photo.
-
-[INFORMATION STUB PALETTE]
-- Stub: [HEX], derived from a darker or more vivid secondary color in Image 1.
-- Text: [HEX], with at least 4.5:1 contrast for date and codes.
-- Keep the source photograph natural.
-
-[TEMPORARY OUTER BACKGROUND]
-- Default subtle-solid mode: use [HEX], derived from Image 1 at HSL saturation 6-20% and lightness 58-62%; one edge-to-edge hue with only imperceptible monochrome microtexture, no gradient or directional light.
-- Gallery style mode: use a quiet flat placeholder only. Do not attempt the final material background in this pass.
-
-[TYPOGRAPHY AND EXACT TEXT]
-Heavy uppercase geometric sans-serif, left aligned with generous padding. Render exactly these lines and no other text:
-"[TITLE LINE 1]"
-"[TITLE LINE 2]"
-"[YYYY - MM]"
-"[NO.12345]"
-"[ABCDEFGH]"
-Below the code, add one small decorative barcode made of varied vertical bars in the same text color.
-
-[CONSTRAINTS]
-Clean finished poster only. No mobile status bar, time, battery, Wi-Fi, notifications, player controls, progress bars, watermark, signature, logos, captions, outside frames or extra text.
+Hard constraints:
+- Do not repaint, retouch, beautify, relight, recolor or restyle any existing source content.
+- Do not change identity, anatomy, pose, gaze, clothing, object count, geometry, texture, sign, logo or readable text.
+- Do not invent people, animals, products, vehicles, architecture, windows, doors, furniture, props, roads, labels or landmarks.
+- Match the existing perspective, lens character, depth of field, grain, exposure, white balance and edge continuity.
+- Add no ticket, poster canvas, typography, barcode, perforation, notch, frame, watermark, phone UI or decorative travel icon.
+- Output one clean expanded photograph only.
 ```
+
+同时用 `view_image` 对比原图和扩展图，记录生成边缘。只要主体、建筑、商品或文字发生改变，就丢弃扩展图，不得继续 edit-on-edit。
 
 ## B. 默认轻质感纯色背景
 
@@ -69,7 +42,7 @@ python3 scripts/build_subtle_texture_background.py \
 
 默认纹理亮度振幅约 `±3`，只产生细微触感；第一眼仍必须是纯色。禁止渐变、暗角、树影、窗影、聚光、纸纤维、石材纹路、颗粒团块和可识别图案。用户明确要求统一色系时，使用 `--palette-mode unified --theme-color '#RRGGBB'`，整组复用同一背景。
 
-合成时将结果作为 `--background-image` 传入 `normalize_reference_layout.py`。旧版 `--background-color` 只用于完全纯色兼容输入。
+合成时将结果作为批量清单中的 `background_image` 交给 `build_ticket_batch.py`。旧版 `normalize_reference_layout.py --background-image` 只用于迁移既有票根。
 
 ## C. 图集锁定背景底图
 
@@ -99,15 +72,9 @@ python3 scripts/adapt_background_plate.py \
 默认每张照片分别运行一次，得到各自主题色背景。只有用户明确要求统一色系时，才用 `--palette-mode unified --theme-color '#RRGGBB'` 生成一张整组复用的背景。
 
 ```bash
-python3 scripts/normalize_reference_layout.py \
-  --input generated-ticket-preview.png \
-  --output final-ticket.png \
-  --bbox X1,Y1,X2,Y2 \
-  --split-x SPLIT_X \
-  --photo-source original-photo.png \
-  --photo-center-y 0.5 \
-  --background-image adaptive-background-1170x1560.png \
-  --shadow-preset premium_float
+python3 scripts/build_ticket_batch.py \
+  --manifest ticket-batch.json \
+  --output-dir output
 ```
 
 ## D. 既有卡片 / 海报只换背景

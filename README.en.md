@@ -37,7 +37,8 @@ The poster uses a restrained, repeatable layout.
 - The nominal ticket body is `1057 × 507px` at `x=55, y=501`
 - Outer margins are locked to the measured reference at `55px` left and `58px` right; ticket width is `90.4%` of the canvas
 - The photo panel occupies about `73.2%` of the ticket width and the information stub about `26.8%`
-- Rounded corners, a vertical perforation, a semicircular notch, a soft shadow, and bold condensed text stay consistent across the series
+- Rounded corners, a vertical perforation, a semicircular notch, and a soft shadow stay consistent; titles use a bold face while dates, numbers, and serial codes use a separate light condensed monospaced face
+- Decorative barcode bars are uniformly `43px` high; only bar widths and gaps vary, never their top alignment
 - Exactly one square-ended perforation divider is allowed, with its first dash flush at the ticket top
 - A tight contact shadow plus a wider ambient shadow grounds the complete ticket
 - With no explicit style request, the canvas uses a photo-derived near-solid color with imperceptible monochrome tactile texture, normally HSL lightness `58–62%` and saturation `6–20%`; no obvious light patch, gradient, or pattern is added
@@ -144,7 +145,7 @@ Open **Plugins** in the ChatGPT/Codex desktop app, or enter `/plugins` in Codex 
 
 | Tool or Plugin | Purpose | Required |
 | --- | --- | --- |
-| Image generation / `imagegen` | Edit and generate images using the ticket visual system | Yes |
+| Image generation / `imagegen` | Generate explicit material plates or extend non-semantic scenery | As needed |
 | GitHub | Maintain the Skill repository and collaborate on changes | Optional |
 | Google Drive / Box | Read source photos or save deliverables | Optional |
 | Canva | Continue layout work or manual refinement after generation | Optional |
@@ -167,7 +168,7 @@ You can also provide explicit metadata.
 Use $dy-travel-ticket-poster for this photo. Title it WATERFRONT and use 2026 - 08.
 ```
 
-For each input, the workflow inspects the photo, chooses a safe crop, and prepares the ticket metadata. With no explicit style, [scripts/build_subtle_texture_background.py](scripts/build_subtle_texture_background.py) creates the near-solid tactile background locally. Gallery style mode instead generates an empty material plate, and [scripts/adapt_background_plate.py](scripts/adapt_background_plate.py) applies the current photo's theme hue or an explicitly shared hue. [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) deterministically restores the original photo pixels and ticket before final review.
+For each input, the workflow inspects the final crop and uses [scripts/suggest_palette.py](scripts/suggest_palette.py) to generate three traceable palette candidates for visual selection. With no explicit style, [scripts/build_subtle_texture_background.py](scripts/build_subtle_texture_background.py) creates the near-solid tactile background locally. Gallery style mode generates an empty material plate, and [scripts/adapt_background_plate.py](scripts/adapt_background_plate.py) applies the current photo's theme hue or an explicitly shared hue. [scripts/render_ticket_poster.py](scripts/render_ticket_poster.py) or [scripts/build_ticket_batch.py](scripts/build_ticket_batch.py) then builds the final ticket deterministically with source pixels, separate title/body fonts, and uniform-height barcode bars. [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) remains available for legacy migration and source-pixel restoration.
 
 ## Metadata behavior
 
@@ -179,9 +180,9 @@ For each input, the workflow inspects the photo, chooses a safe crop, and prepar
 
 ## Requirements
 
-- Codex with the `imagegen` Skill available
-- ImageMagick for final normalization
-- Pillow for deterministic layout rebuilding and targeted background recoloring
+- Python 3.10+ and the Pillow version declared in `requirements.txt`
+- Available bold-title and light condensed monospaced body fonts; the renderer records their identities and SHA-256 values
+- `imagegen` only when a styled material plate or non-semantic scenery extension is required
 - Local access to the input photos
 
 The normalizer can be run directly after visual approval.
@@ -309,20 +310,12 @@ The following examples show the supplied source photo beside the generated trave
 ├── SKILL.md
 ├── agents/openai.yaml
 ├── assets/cases/
-├── references/background-styles.json
-├── references/gallery-12-background-styles.json
-├── references/prompt-template.md
-├── references/style-spec.md
-├── scripts/background_style_system.py
-├── scripts/adapt_background_plate.py
-├── scripts/build_subtle_texture_background.py
-├── scripts/build_before_after_showcase.py
-├── scripts/build_ticket_batch.py
-├── scripts/normalize_output.sh
-├── scripts/normalize_reference_layout.py
-├── scripts/recolor_existing_poster.py
-├── scripts/validate_gallery_references.py
-└── tests/
+├── requirements.txt
+├── references/                  # Palette, 12/20-style, prompt and geometry specs
+├── scripts/                     # Palette, deterministic render, background and validation tools
+├── tests/                       # Style-system and composite regression tests
+├── docs/                        # GitHub Pages gallery
+└── .github/workflows/pages.yml
 ```
 
 ## Content boundaries

@@ -37,7 +37,8 @@
 - 票根主体名义坐标为 `x=55, y=501`，尺寸为 `1057 × 507px`
 - 左右外边距锁定为参考图的 `55px / 58px`，宽度占画布的 `90.4%`
 - 照片区约占票根宽度的 `73.2%`，信息联约占 `26.8%`
-- 圆角、竖向撕票线、半圆缺口、轻阴影和粗体窄字保持一致
+- 圆角、竖向撕票线、半圆缺口和轻阴影保持一致；标题使用粗体，日期、编号与序列码使用独立的细窄等宽字体
+- 装饰条形码统一为 `43px` 等高竖条，只改变条宽和间距，不出现参差顶部
 - 照片与信息联之间始终只有一条方角矩形虚线；虚线首段从票根顶部开始，不使用圆角
 - 使用接触阴影与环境阴影两层结构，让整张票根稳定落在背景上
 - 未指定风格时，画布默认使用照片主题色驱动的“近似纯色 + 极轻微单色质感”背景，明度 `58–62%`、饱和度 `6–20%`；不出现明显光斑、渐变或图案
@@ -164,7 +165,7 @@ gh repo clone cxcxy/dy-travel-ticket-poster "$HOME/.claude/skills/dy-travel-tick
 
 | 工具或 Plugin | 用途 | 是否必需 |
 | --- | --- | --- |
-| Image generation / `imagegen` | 按票根视觉系统编辑并生成图片 | 必需 |
+| Image generation / `imagegen` | 生成显式材质母版或扩展无语义环境 | 按需 |
 | GitHub | 维护 Skill 仓库、查看提交或协作修改 | 可选 |
 | Google Drive / Box | 读取原始照片或保存交付图 | 可选 |
 | Canva | 在成片后继续排版或人工微调 | 可选 |
@@ -187,7 +188,7 @@ Plugin 不会自动获得本地私人照片；仍需由用户明确选择或授�
 使用 $dy-travel-ticket-poster 处理这张照片，标题用 WATERFRONT，日期用 2026 - 08。
 ```
 
-工作流会逐张检查照片，选择安全的裁切区域并整理票根信息。未指定风格时，[scripts/build_subtle_texture_background.py](scripts/build_subtle_texture_background.py) 直接生成主题色轻质感纯色背景，不调用生图模型；显式图集风格才调用 `imagegen` 生成无主体材质母版，再由 [scripts/adapt_background_plate.py](scripts/adapt_background_plate.py) 适配主题色。最后通过 [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 回填原始照片像素和票根，目视检查并输出标准尺寸成品。
+工作流会逐张检查最终裁切，使用 [scripts/suggest_palette.py](scripts/suggest_palette.py) 生成三套可追溯配色并目视选择。未指定风格时，[scripts/build_subtle_texture_background.py](scripts/build_subtle_texture_background.py) 直接生成主题色轻质感纯色背景，不调用生图模型；显式图集风格才生成无主体材质母版，再由 [scripts/adapt_background_plate.py](scripts/adapt_background_plate.py) 适配主题色。最终票根由 [scripts/render_ticket_poster.py](scripts/render_ticket_poster.py) 或 [scripts/build_ticket_batch.py](scripts/build_ticket_batch.py) 确定性构建，保留原始照片像素、独立标题/正文字体和等高条码；[scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 仅用于旧票根迁移与原图回填。
 
 ## 信息生成规则
 
@@ -199,9 +200,9 @@ Plugin 不会自动获得本地私人照片；仍需由用户明确选择或授�
 
 ## 环境要求
 
-- Codex 环境中可以使用 `imagegen` Skill
-- 本地安装 ImageMagick，用于最终尺寸归一化
-- 本地安装 Pillow，用于确定性版式重建和背景定向换色
+- Python 3.10+ 与 `requirements.txt` 中声明的 Pillow
+- 可用的粗体标题字体与细窄等宽正文字体；脚本会记录字体名称和 SHA-256
+- 只有生成显式材质母版或扩展无语义环境时才需要 `imagegen`
 - 本地可以访问需要处理的原始照片
 
 成品通过目视检查后，可以单独运行归一化脚本。
@@ -331,20 +332,12 @@ bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ├── SKILL.md
 ├── agents/openai.yaml
 ├── assets/cases/
-├── references/background-styles.json
-├── references/gallery-12-background-styles.json
-├── references/prompt-template.md
-├── references/style-spec.md
-├── scripts/background_style_system.py
-├── scripts/adapt_background_plate.py
-├── scripts/build_subtle_texture_background.py
-├── scripts/build_before_after_showcase.py
-├── scripts/build_ticket_batch.py
-├── scripts/normalize_output.sh
-├── scripts/normalize_reference_layout.py
-├── scripts/recolor_existing_poster.py
-├── scripts/validate_gallery_references.py
-└── tests/
+├── requirements.txt
+├── references/                  # 配色、12/20 风格、提示词与版式规范
+├── scripts/                     # 取色、确定性渲染、背景适配与严格验证
+├── tests/                       # 12 风格与背景合成测试
+├── docs/                        # GitHub Pages 预览站
+└── .github/workflows/pages.yml
 ```
 
 ## 内容边界

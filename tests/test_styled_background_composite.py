@@ -158,8 +158,8 @@ class StyledBackgroundCompositeTests(unittest.TestCase):
                 source_photo,
                 0.5,
                 None,
-                background,
-                "premium_float",
+                background_image_path=background,
+                shadow_preset="premium_float",
             )
 
             result = Image.open(output).convert("RGB")
@@ -188,7 +188,7 @@ class StyledBackgroundCompositeTests(unittest.TestCase):
                     source_photo,
                     0.5,
                     None,
-                    background,
+                    background_image_path=background,
                 )
 
 
