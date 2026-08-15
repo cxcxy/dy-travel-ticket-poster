@@ -21,6 +21,7 @@ from normalize_reference_layout import (
     apply_ticket_shadow,
     build_background,
     draw_single_perforation,
+    load_background_image,
     make_ticket_mask,
 )
 
@@ -114,9 +115,24 @@ def build_ticket(item: dict[str, object], output_dir: Path, overwrite: bool = Fa
     ticket.paste(stub, (PHOTO_W, 0))
     draw_single_perforation(ticket)
 
-    background = build_background(parse_hex(str(item["background"])))
+    has_color = "background" in item
+    has_image = "background_image" in item
+    if has_color == has_image:
+        raise ValueError(
+            "each manifest item must provide exactly one of background or background_image"
+        )
+    background = (
+        build_background(parse_hex(str(item["background"])))
+        if has_color
+        else load_background_image(Path(str(item["background_image"])))
+    )
     mask = make_ticket_mask()
-    apply_ticket_shadow(background, mask)
+    shadow_preset = item.get("shadow_preset")
+    apply_ticket_shadow(
+        background,
+        mask,
+        shadow_preset=str(shadow_preset) if shadow_preset else None,
+    )
     background.paste(ticket, (TICKET_X, TICKET_Y), mask)
 
     output_dir.mkdir(parents=True, exist_ok=True)

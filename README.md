@@ -12,6 +12,9 @@
 - 最终照片面板直接使用原始文件像素做等比例裁切与高质量缩放，不使用生成模型重构图，不经过 JPEG 有损中间转码
 - 在主体完整的前提下保留足够的环境信息
 - 根据每张照片调整海报背景和信息联配色
+- 可用 20 个 `style_id` 调用完整材质、色彩、纹理、光线、阴影和纵深系统
+- 支持 `subtle / balanced / strong` 强度、6 种光线、4 种阴影和严格主体保护
+- 用户不记得风格名时，可按题材与氛围推荐差异明显的多套背景
 - 优先采用用户给出的标题、地点和日期
 - 地点无法可靠确认时，改用中性场景词
 - 自动生成五位编号、八位装饰码和装饰性条形码
@@ -29,10 +32,57 @@
 - 圆角、竖向撕票线、半圆缺口、轻阴影和粗体窄字保持一致
 - 照片与信息联之间始终只有一条方角矩形虚线；虚线首段从票根顶部开始，不使用圆角
 - 使用接触阴影与环境阴影两层结构，让整张票根稳定落在背景上
-- 画布使用由照片提取的低饱和纯色背景，默认明度 `58–62%`、饱和度 `6–20%`
+- 未指定风格时，画布使用由照片提取的低饱和纯色背景，默认明度 `58–62%`、饱和度 `6–20%`
 - 配色随照片变化，信息层级和版式保持不变；批量任务不套统一默认背景色
 
 完整的版式参数见 [references/style-spec.md](references/style-spec.md)。
+
+## 背景风格系统 V2
+
+显式指定风格后，Skill 会从 [references/background-styles.json](references/background-styles.json) 解析完整配置，而不是只替换一个米色。材质、光线和阴影彼此可组合；默认使用 `balanced` 强度和 `strict` 主体保护。未指定风格时仍保留原来的逐图纯色逻辑。
+
+| `style_id` | 中文名 | 主要材质 / 氛围 |
+| --- | --- | --- |
+| `warm_greige_linen` | 暖灰亚麻质感 | 亚麻、极简、编辑感 |
+| `cream_art_paper` | 奶油艺术纸 | 艺术纸、印刷、干净 |
+| `soft_sand_gradient` | 柔雾沙丘渐变 | 自然明度变化、柔雾 |
+| `wabi_sabi_plaster` | 侘寂石灰墙 | 石灰墙、手工、侘寂 |
+| `warm_gray_cinematic` | 暖灰电影哑光 | 电影灰、细颗粒、摄影 |
+| `caramel_bokeh` | 焦糖光斑 | 咖啡、午后、暖光 |
+| `handmade_washi` | 手工和纸 | 和纸、日本、现代手作 |
+| `ivory_minimal_studio` | 象牙白极简展台 | 展台、画廊、通用极简 |
+| `mushroom_suede` | 蘑菇灰麂皮 | 麂皮、柔软、精品感 |
+| `soft_spotlight` | 中心聚光柔影 | 柔光、聚焦、展示 |
+| `premium_beige_fabric` | 高级米色织物 | 细密织物、现代家居 |
+| `cream_mineral_wall` | 奶油矿物墙 | 矿物涂料、建筑、干净 |
+| `travertine_luxury` | 洞石建筑质感 | 洞石、酒店、静奢 |
+| `frosted_cream` | 奶霜柔雾 | 粉雾哑光、轻盈 |
+| `window_shadow_stucco` | 窗影艺术墙 | 灰泥墙、午后窗影 |
+| `natural_cotton_paper` | 天然棉纸 | 棉浆纸、手工印刷 |
+| `warm_leather` | 暖棕皮革 | 哑光皮革、精品咖啡 |
+| `pearl_satin` | 珍珠缎面 | 珍珠漫反射、画廊 |
+| `sand_microcement` | 沙色微水泥 | 微水泥、北欧建筑 |
+| `vintage_parchment` | 复古羊皮纸光影 | 旅行记忆、克制怀旧 |
+
+直接调用：
+
+```text
+使用 $dy-travel-ticket-poster，把背景改成 travertine_luxury，强度 balanced，使用 soft_daylight 和 premium_float；主体保护 strict。
+```
+
+也可以只描述意图：
+
+```text
+使用 $dy-travel-ticket-poster，给这张票根推荐 10 个材质差异明显的高级背景方案。
+```
+
+命令行可验证、解析、推荐或生成标准 Prompt：
+
+```bash
+python3 scripts/background_style_system.py validate
+python3 scripts/background_style_system.py recommend --context "高级温暖的旅行票根" --count 10
+python3 scripts/background_style_system.py prompt --style-id travertine_luxury --strength balanced
+```
 
 ## 安装与工具支持
 
@@ -102,7 +152,7 @@ Plugin 不会自动获得本地私人照片；仍需由用户明确选择或授�
 使用 $dy-travel-ticket-poster 处理这张照片，标题用 WATERFRONT，日期用 2026 - 08。
 ```
 
-工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 完成栅格编辑，目视检查结果，再通过 [scripts/normalize_output.sh](scripts/normalize_output.sh) 输出标准尺寸成品。
+工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 完成栅格编辑。V2 风格模式会先生成无主体的背景底图，再通过 [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 回填原始照片像素和票根，最后目视检查并输出标准尺寸成品。
 
 ## 信息生成规则
 
@@ -246,13 +296,16 @@ bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ├── SKILL.md
 ├── agents/openai.yaml
 ├── assets/cases/
+├── references/background-styles.json
 ├── references/prompt-template.md
 ├── references/style-spec.md
+├── scripts/background_style_system.py
 ├── scripts/build_before_after_showcase.py
 ├── scripts/build_ticket_batch.py
 ├── scripts/normalize_output.sh
 ├── scripts/normalize_reference_layout.py
-└── scripts/recolor_existing_poster.py
+├── scripts/recolor_existing_poster.py
+└── tests/
 ```
 
 ## 内容边界

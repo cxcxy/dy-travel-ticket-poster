@@ -12,6 +12,9 @@ The final deliverable for each photo is a clean `1170 × 1560` PNG in a `3:4` as
 - Builds the final photo panel directly from original source pixels with aspect-preserving cropping and high-quality resampling; never uses a model-reconstructed panel or a lossy JPEG intermediate
 - Selects a crop that keeps the main subject and enough environmental context
 - Adapts the background and ticket-stub colors to each photograph
+- Resolves 20 material-aware `style_id` presets with color, texture, lighting, shadow, and depth
+- Supports `subtle / balanced / strong` intensity, six lighting presets, four shadow presets, and strict subject preservation
+- Recommends materially different options when the user asks for multiple backgrounds
 - Uses user-provided titles and dates when available
 - Falls back to a neutral scene title when the location cannot be verified
 - Creates a five-digit serial, an eight-character decorative code, and a decorative barcode
@@ -29,10 +32,40 @@ The poster uses a restrained, repeatable layout.
 - Rounded corners, a vertical perforation, a semicircular notch, a soft shadow, and bold condensed text stay consistent across the series
 - Exactly one square-ended perforation divider is allowed, with its first dash flush at the ticket top
 - A tight contact shadow plus a wider ambient shadow grounds the complete ticket
-- The canvas uses a flat low-saturation color derived from the photo, normally HSL lightness `58–62%` and saturation `6–20%`
+- With no explicit style request, the canvas uses a flat low-saturation color derived from the photo, normally HSL lightness `58–62%` and saturation `6–20%`
 - The palette changes with each source photo while hierarchy and geometry remain fixed; a batch must not reuse one generic background color
 
 Full construction details are in [references/style-spec.md](references/style-spec.md).
+
+## Background Style System V2
+
+When a style is requested, the Skill resolves a complete material specification from [references/background-styles.json](references/background-styles.json), rather than changing only a beige color. Material, lighting, and shadow remain independently composable. The default is `balanced` strength with `strict` subject preservation; the original photo-derived solid background remains the fallback when no style is requested.
+
+The 20 IDs are:
+
+```text
+warm_greige_linen       cream_art_paper        soft_sand_gradient
+wabi_sabi_plaster       warm_gray_cinematic    caramel_bokeh
+handmade_washi          ivory_minimal_studio   mushroom_suede
+soft_spotlight          premium_beige_fabric   cream_mineral_wall
+travertine_luxury       frosted_cream           window_shadow_stucco
+natural_cotton_paper    warm_leather            pearl_satin
+sand_microcement        vintage_parchment
+```
+
+Example:
+
+```text
+Use $dy-travel-ticket-poster with travertine_luxury, balanced strength, soft_daylight, premium_float, and strict subject preservation.
+```
+
+The deterministic helper validates the registry, recommends diverse styles, resolves presets, and compiles the image prompt:
+
+```bash
+python3 scripts/background_style_system.py validate
+python3 scripts/background_style_system.py recommend --context "premium warm travel ticket" --count 10
+python3 scripts/background_style_system.py prompt --style-id travertine_luxury --strength balanced
+```
 
 ## Installation and tool support
 
@@ -102,7 +135,7 @@ You can also provide explicit metadata.
 Use $dy-travel-ticket-poster for this photo. Title it WATERFRONT and use 2026 - 08.
 ```
 
-For each input, the workflow inspects the photo, chooses a safe crop, prepares the ticket metadata, performs the raster edit with the installed `imagegen` Skill, checks the result, and normalizes the approved output with [scripts/normalize_output.sh](scripts/normalize_output.sh).
+For each input, the workflow inspects the photo, chooses a safe crop, and prepares the ticket metadata. V2 style mode generates an empty background plate, then [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) deterministically restores the original photo pixels and ticket over that plate before final review.
 
 ## Metadata behavior
 
@@ -217,8 +250,6 @@ The following examples show the supplied source photo beside the generated trave
     <td><img src="assets/cases/waterfront-original.jpg" width="360" alt="Original waterfront portrait with a camera"></td>
     <td><img src="assets/cases/waterfront-ticket.jpg" width="360" alt="Waterfront portrait converted into a travel-ticket poster"></td>
   </tr>
-</table>
-
 ### 10 · Lakeside view
 
 <table>
@@ -246,13 +277,16 @@ The following examples show the supplied source photo beside the generated trave
 ├── SKILL.md
 ├── agents/openai.yaml
 ├── assets/cases/
+├── references/background-styles.json
 ├── references/prompt-template.md
 ├── references/style-spec.md
+├── scripts/background_style_system.py
 ├── scripts/build_before_after_showcase.py
 ├── scripts/build_ticket_batch.py
 ├── scripts/normalize_output.sh
 ├── scripts/normalize_reference_layout.py
-└── scripts/recolor_existing_poster.py
+├── scripts/recolor_existing_poster.py
+└── tests/
 ```
 
 ## Content boundaries

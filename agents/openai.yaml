@@ -1,4 +1,4 @@
 interface:
-  display_name: "DY 旅行票根海报"
-  short_description: "原图保真、唯一方角虚线与双层阴影的精致旅行票根海报"
-  default_prompt: "使用 $dy-travel-ticket-poster，从原图无损等比裁切照片区，只保留一条方角虚线并用双层阴影制作 3:4 旅行票根海报。"
+  display_name: "DY 票根海报与背景风格"
+  short_description: "原图保真、票根制作与20种可组合高级材质背景风格系统"
+  default_prompt: "使用 $dy-travel-ticket-poster 保持主体与原图不变，为照片制作票根或推荐并应用可组合的高级背景风格。"

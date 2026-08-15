@@ -8,6 +8,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
+from background_style_system import load_registry
+
 
 CANVAS_SIZE = (1170, 1560)
 TICKET_X = 55  # 4.7% of canvas width
@@ -85,7 +87,9 @@ def clean_stub_leading_edge(stub: Image.Image) -> Image.Image:
         (sample_x1, max(0, stub.height - 96), sample_x2, stub.height)
     )
     # Median suppresses text and generated perforation highlights while preserving stub color.
-    samples = list(upper.get_flattened_data()) + list(lower.get_flattened_data())
+    # Image.getdata() works across the older Pillow bundled with macOS Python and
+    # current Pillow releases. The newer get_flattened_data() is not universal.
+    samples = list(upper.getdata()) + list(lower.getdata())
     channels = list(zip(*samples))
     fill = tuple(sorted(channel)[len(channel) // 2] for channel in channels)
     ImageDraw.Draw(cleaned).rectangle(
@@ -108,12 +112,35 @@ def draw_single_perforation(ticket: Image.Image) -> None:
         )
 
 
-def apply_ticket_shadow(background: Image.Image, mask: Image.Image) -> None:
+def apply_ticket_shadow(
+    background: Image.Image,
+    mask: Image.Image,
+    shadow_preset: str | None = None,
+) -> None:
     """Render a grounded two-stage shadow without creating a second card edge."""
-    for offset, blur, opacity in (
-        (AMBIENT_SHADOW_OFFSET, AMBIENT_SHADOW_BLUR, AMBIENT_SHADOW_OPACITY),
-        (CONTACT_SHADOW_OFFSET, CONTACT_SHADOW_BLUR, CONTACT_SHADOW_OPACITY),
-    ):
+    if shadow_preset is None:
+        layers = (
+            (AMBIENT_SHADOW_OFFSET, AMBIENT_SHADOW_BLUR, AMBIENT_SHADOW_OPACITY),
+            (CONTACT_SHADOW_OFFSET, CONTACT_SHADOW_BLUR, CONTACT_SHADOW_OPACITY),
+        )
+    else:
+        presets = load_registry()["shadow_presets"]
+        if shadow_preset not in presets:
+            raise ValueError(
+                f"unknown shadow preset {shadow_preset!r}; "
+                f"choose from {', '.join(presets)}"
+            )
+        preset = presets[shadow_preset]
+        distance = int(preset["distance"])
+        blur = int(preset["blur"])
+        opacity = round(float(preset["opacity"]) * 255)
+        contact_opacity = max(18, min(44, round(opacity * 0.72)))
+        layers = (
+            ((2, distance), blur, opacity),
+            ((3, max(1, min(5, distance))), max(4, min(8, blur // 3)), contact_opacity),
+        )
+
+    for offset, blur, opacity in layers:
         shadow_mask = Image.new("L", CANVAS_SIZE, 0)
         shadow_mask.paste(mask, (TICKET_X + offset[0], TICKET_Y + offset[1]))
         shadow_mask = shadow_mask.filter(ImageFilter.GaussianBlur(blur))
@@ -125,6 +152,16 @@ def apply_ticket_shadow(background: Image.Image, mask: Image.Image) -> None:
         )
 
 
+def load_background_image(path: Path) -> Image.Image:
+    """Load a generated background plate without stretching or cropping it."""
+    background = Image.open(path).convert("RGB")
+    if background.size != CANVAS_SIZE:
+        raise ValueError(
+            f"background image must be exactly {CANVAS_SIZE}, got {background.size}"
+        )
+    return background.copy()
+
+
 def normalize(
     input_path: Path,
     output_path: Path,
@@ -132,7 +169,9 @@ def normalize(
     split_x: int,
     photo_source_path: Path | None,
     photo_center_y: float,
-    background_color: tuple[int, int, int],
+    background_color: tuple[int, int, int] | None,
+    background_image_path: Path | None = None,
+    shadow_preset: str | None = None,
 ) -> None:
     source = Image.open(input_path).convert("RGB")
     x1, y1, x2, y2 = bbox
@@ -164,10 +203,16 @@ def normalize(
     ticket.paste(stub, (PHOTO_W, 0))
     draw_single_perforation(ticket)
 
-    background = build_background(background_color)
+    if (background_color is None) == (background_image_path is None):
+        raise ValueError("provide exactly one background color or background image")
+    background = (
+        build_background(background_color)
+        if background_color is not None
+        else load_background_image(background_image_path)
+    )
     mask = make_ticket_mask()
 
-    apply_ticket_shadow(background, mask)
+    apply_ticket_shadow(background, mask, shadow_preset=shadow_preset)
 
     background.paste(ticket, (TICKET_X, TICKET_Y), mask)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -189,11 +234,21 @@ def main() -> None:
         help="Explicitly allow using the generated photo panel instead of original pixels",
     )
     parser.add_argument("--photo-center-y", type=float, default=0.5)
-    parser.add_argument(
+    background_group = parser.add_mutually_exclusive_group(required=True)
+    background_group.add_argument(
         "--background-color",
         type=parse_color,
-        required=True,
         help="Muted mid-value RGB hex color derived from the source photograph",
+    )
+    background_group.add_argument(
+        "--background-image",
+        type=Path,
+        help="Exact 1170x1560 background-only plate generated from a V2 style prompt",
+    )
+    parser.add_argument(
+        "--shadow-preset",
+        choices=("flat", "subtle_float", "premium_float", "architectural"),
+        help="Optional V2 shadow preset; omit to preserve the verified legacy shadow",
     )
     args = parser.parse_args()
     if not 0.0 <= args.photo_center_y <= 1.0:
@@ -211,6 +266,8 @@ def main() -> None:
         args.photo_source,
         args.photo_center_y,
         args.background_color,
+        args.background_image,
+        args.shadow_preset,
     )
 
 
