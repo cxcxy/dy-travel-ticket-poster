@@ -21,12 +21,18 @@ def load_font(path: Path, size: int) -> ImageFont.FreeTypeFont | ImageFont.Image
         return ImageFont.load_default()
 
 
-def style_id_from_filename(filename: str) -> str:
-    stem = Path(filename).stem
-    marker = "-old-town-"
-    if marker not in stem:
-        raise ValueError(f"cannot derive style_id from filename: {filename}")
-    return stem.split(marker, 1)[1]
+def style_id_from_item(item: dict[str, object], registry: dict[str, object]) -> str:
+    explicit = item.get("style_id")
+    if isinstance(explicit, str) and explicit:
+        return explicit
+    stem = Path(str(item["filename"])).stem
+    styles = registry["styles"]
+    if not isinstance(styles, dict):
+        raise ValueError("registry styles must be an object")
+    matches = [style_id for style_id in styles if stem.endswith(f"-{style_id}")]
+    if len(matches) != 1:
+        raise ValueError(f"cannot derive one style_id from filename: {item['filename']}")
+    return matches[0]
 
 
 def build_sheet(
@@ -64,7 +70,8 @@ def build_sheet(
     id_font = load_font(FONT_BOLD, 18)
     number_font = load_font(FONT_BOLD, 21)
 
-    draw.text((outer, 42), "BACKGROUND STYLE SYSTEM V2 · 20 STYLES", font=title_font, fill=(244, 240, 229))
+    title = f"BACKGROUND STYLE SYSTEM · {len(items)} STYLES"
+    draw.text((outer, 42), title, font=title_font, fill=(244, 240, 229))
     draw.text(
         (outer, 112),
         "同一照片 · 同一票根 · BALANCED 强度 · STRICT 主体保护",
@@ -74,7 +81,7 @@ def build_sheet(
 
     for index, item in enumerate(items):
         filename = item["filename"]
-        style_id = style_id_from_filename(filename)
+        style_id = style_id_from_item(item, registry)
         style = registry["styles"][style_id]
         poster_path = posters_dir / filename
         poster = Image.open(poster_path).convert("RGB")

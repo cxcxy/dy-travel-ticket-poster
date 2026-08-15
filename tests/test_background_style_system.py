@@ -15,6 +15,7 @@ from background_style_system import (  # noqa: E402
     resolve_style,
     validate_registry,
 )
+from build_style_contact_sheet import style_id_from_item  # noqa: E402
 
 
 class BackgroundStyleSystemTests(unittest.TestCase):
@@ -22,34 +23,46 @@ class BackgroundStyleSystemTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.registry = load_registry()
 
-    def test_registry_has_twenty_complete_styles(self) -> None:
+    def test_registry_has_twelve_reference_locked_styles(self) -> None:
         self.assertEqual(validate_registry(self.registry), [])
-        self.assertEqual(len(self.registry["styles"]), 20)
+        self.assertEqual(len(self.registry["styles"]), 12)
+        orders = {
+            style["reference_anchor"]["order"]
+            for style in self.registry["styles"].values()
+        }
+        self.assertEqual(orders, set(range(1, 13)))
 
-    def test_travertine_compiles_with_strict_preservation(self) -> None:
+    def test_legacy_twenty_style_registry_still_validates(self) -> None:
+        legacy = load_registry(ROOT / "references" / "background-styles.json")
+        self.assertEqual(validate_registry(legacy), [])
+        self.assertEqual(len(legacy["styles"]), 20)
+
+    def test_reference_travertine_compiles_with_strict_preservation(self) -> None:
         resolved = resolve_style(
             self.registry,
-            "travertine_luxury",
+            "ivory_travertine_diagonal",
             strength="balanced",
-            lighting="soft_daylight",
-            shadow="premium_float",
+            lighting="stone_diagonal",
+            shadow="architectural",
         )
         prompt = compile_prompt(resolved, self.registry)
-        self.assertIn("premium light travertine", prompt)
+        self.assertIn("premium ivory travertine", prompt)
         self.assertIn("Keep original proportions, typography, people", prompt)
+        self.assertIn("Gallery order: 10", prompt)
+        self.assertIn("wide diagonal illumination", prompt)
         self.assertIn("no neon", prompt)
 
     def test_named_strength_is_clamped_to_style_limits(self) -> None:
-        resolved = resolve_style(self.registry, "frosted_cream", strength="strong")
+        resolved = resolve_style(self.registry, "ivory_paper_window_veil", strength="strong")
         self.assertEqual(resolved["strength"]["requested"], 0.75)
-        self.assertEqual(resolved["strength"]["effective"], 0.55)
+        self.assertEqual(resolved["strength"]["effective"], 0.6)
 
     def test_recommender_prefers_context_and_diversity(self) -> None:
         results = recommend_styles(self.registry, "给我 10 个高级旅行票根背景方案", 10)
         ids = [item["style_id"] for item in results]
         self.assertEqual(len(ids), 10)
         self.assertEqual(len(set(ids)), 10)
-        self.assertTrue({"travertine_luxury", "cream_art_paper"}.intersection(ids))
+        self.assertTrue({"ivory_travertine_diagonal", "ivory_paper_window_veil"}.intersection(ids))
         materials = {item["material"] for item in results}
         self.assertGreaterEqual(len(materials), 8)
 
@@ -59,6 +72,12 @@ class BackgroundStyleSystemTests(unittest.TestCase):
             [item["style_id"] for item in results],
             self.registry["diverse_default_order"][:10],
         )
+
+    def test_contact_sheet_accepts_explicit_or_filename_style_id(self) -> None:
+        explicit = {"filename": "preview.png", "style_id": "sand_center_glow"}
+        derived = {"filename": "03-coffee-sand_center_glow.png"}
+        self.assertEqual(style_id_from_item(explicit, self.registry), "sand_center_glow")
+        self.assertEqual(style_id_from_item(derived, self.registry), "sand_center_glow")
 
 
 if __name__ == "__main__":

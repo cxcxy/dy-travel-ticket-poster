@@ -1,4 +1,4 @@
 interface:
   display_name: "DY 票根海报与背景风格"
-  short_description: "原图保真、票根制作与20种可组合高级材质背景风格系统"
-  default_prompt: "使用 $dy-travel-ticket-poster 保持主体与原图不变，为照片制作票根或推荐并应用可组合的高级背景风格。"
+  short_description: "原图保真、票根制作与图集锁定的12种可配置背景风格"
+  default_prompt: "使用 $dy-travel-ticket-poster 保持主体与原图不变，为照片制作票根，或从图集锁定的12种背景中推荐并应用可配置风格。"

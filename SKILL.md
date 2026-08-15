@@ -1,6 +1,6 @@
 ---
 name: dy-travel-ticket-poster
-description: Convert user-supplied photos into reference-locked 3:4 travel, coffee, or movie ticket posters, and apply a reusable V2 background style system to existing tickets, cards, posters, photos, or products. Supports 20 material-aware style IDs, lighting and shadow presets, style strength, strict subject preservation, diverse style recommendations, photo-derived solid-color fallback, original-pixel photo panels, neutral titles, dates, serials, and barcodes. Use when the user asks to "套旅行票根模板", "做成票根海报", "改成这种旅行票格式", change only a card/poster background, requests a named material such as 洞石/和纸/亚麻/微水泥, asks for multiple differentiated background options, references style_id, or continues a prior ticket-poster batch.
+description: Convert user-supplied photos into reference-locked 3:4 travel, coffee, or movie ticket posters, and apply a configurable 12-style gallery-derived background system to existing tickets, cards, posters, photos, or products. Supports reference-anchored material and light identities, style strength, lighting and shadow overrides, strict subject preservation, diverse recommendations, photo-derived solid-color fallback, original-pixel photo panels, neutral titles, dates, serials, and barcodes. Use when the user asks to "套旅行票根模板", "做成票根海报", "改成这种旅行票格式", match one of the 12 supplied gallery backgrounds, change only a card/poster background, requests materials such as 洞石/和纸/亚麻/灰泥, asks for multiple differentiated background options, references style_id, or continues a prior ticket-poster batch.
 ---
 
 # DY 旅行票根海报
@@ -18,31 +18,56 @@ description: Convert user-supplied photos into reference-locked 3:4 travel, coff
 
 1. 票根构建模式完整读取 [references/style-spec.md](references/style-spec.md)。
 2. 实际生成或编辑图片时完整读取 [references/prompt-template.md](references/prompt-template.md)。
-3. 用户指定背景风格、描述背景氛围或要求多套方案时，使用 [scripts/background_style_system.py](scripts/background_style_system.py) 读取并解析 [references/background-styles.json](references/background-styles.json)；不要手写或猜测注册表字段。
+3. 用户指定背景风格、描述背景氛围或要求多套方案时，使用 [scripts/background_style_system.py](scripts/background_style_system.py) 读取并解析默认的 [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json)；不要手写或猜测注册表字段。通用 20 风格基线保留在 [references/background-styles.json](references/background-styles.json)，只有用户明确要求旧风格时才用 `--registry` 切换。
 4. 加载并遵循当前环境的 `imagegen` Skill。它负责栅格图片生成与编辑；本 Skill 负责结构、主体保护、确定性合成和验收。
 
-## 背景风格系统 V2
+## 图集锁定的 12 风格系统
 
 ### 调用结构
 
 ```yaml
 background:
-  style_id: travertine_luxury
+  style_id: ivory_travertine_diagonal
   strength: balanced
 lighting:
-  preset: soft_daylight
+  preset: stone_diagonal
 shadow:
-  preset: premium_float
+  preset: architectural
 subject_preservation:
   mode: strict
 temperature_shift: 0
 ```
 
 - `strength` 支持 `subtle`、`balanced`、`strong` 或 `0..1`；默认 `balanced`。脚本会按当前风格的安全区间裁剪有效强度。
-- 光线支持 `soft_daylight`、`afternoon_sun`、`diffused_window`、`gallery_light`、`center_spotlight`、`overcast_soft`。
+- 光线既保留 6 个通用预设，也提供与图集对应的侧光、柔窗影、中心柔光、电影衰减、树影、纸张柔光、纵向柔影、建筑斜光、石灰墙漫射、洞石斜光、顶光和左上聚光预设。
 - 阴影支持 `flat`、`subtle_float`、`premium_float`、`architectural`；风格模式默认采用该风格推荐值。
 - `subject_preservation` 默认并必须优先使用 `strict`。只有用户明确要求主体与背景融合时才允许 `balanced` 或 `creative`。
 - 无 `style_id` 且用户没有提出背景风格要求时，沿用逐图取色的低饱和纯色背景，不自动套米色材质。
+
+12 个默认风格按用户图集顺序固定为：
+
+1. `warm_linen_side_light` 暖灰亚麻侧光
+2. `ivory_paper_window_veil` 象牙艺术纸柔窗影
+3. `sand_center_glow` 沙岩中心柔光
+4. `mushroom_cinematic_vignette` 蘑菇灰电影墙
+5. `caramel_dappled_sun` 焦糖树影墙
+6. `natural_washi_halo` 天然和纸柔光
+7. `greige_stucco_soft_beams` 暖灰灰泥柔影
+8. `ivory_stucco_window_beam` 象牙灰泥窗光
+9. `cream_limewash_diffusion` 奶油石灰墙漫射
+10. `ivory_travertine_diagonal` 象牙洞石斜光
+11. `cotton_paper_top_glow` 棉纸顶光
+12. `caramel_mineral_spotlight` 焦糖矿物聚光
+
+注册表用参考图文件名、SHA-256、实测背景中值色和视觉签名锁定来源关系。生成时只迁移背景身份，不复制图集里的咖啡照片、人物、文字、编号或条形码。
+
+维护或替换参考图集时先验证来源锚点：
+
+```bash
+python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/gallery"
+```
+
+哈希、尺寸或安全背景区中值色任一不一致时停止，不要静默把新图片解释成旧风格。
 
 ### 解析与推荐
 
@@ -50,10 +75,10 @@ temperature_shift: 0
 
 ```bash
 python3 scripts/background_style_system.py resolve \
-  --style-id travertine_luxury \
+  --style-id ivory_travertine_diagonal \
   --strength balanced \
-  --lighting soft_daylight \
-  --shadow premium_float \
+  --lighting stone_diagonal \
+  --shadow architectural \
   --preservation strict
 ```
 
@@ -68,10 +93,10 @@ python3 scripts/background_style_system.py recommend \
 
 ```bash
 python3 scripts/background_style_system.py prompt \
-  --style-id travertine_luxury \
+  --style-id ivory_travertine_diagonal \
   --strength balanced \
-  --lighting soft_daylight \
-  --shadow premium_float \
+  --lighting stone_diagonal \
+  --shadow architectural \
   --preservation strict
 ```
 

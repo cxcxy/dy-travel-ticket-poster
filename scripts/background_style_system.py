@@ -11,7 +11,11 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_REGISTRY = Path(__file__).resolve().parent.parent / "references" / "background-styles.json"
+DEFAULT_REGISTRY = (
+    Path(__file__).resolve().parent.parent
+    / "references"
+    / "gallery-12-background-styles.json"
+)
 REQUIRED_STYLE_FIELDS = (
     "name",
     "category",
@@ -45,6 +49,7 @@ REQUIRED_STYLE_FIELDS = (
     "prompt_fragment",
 )
 HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
 def load_registry(path: Path = DEFAULT_REGISTRY) -> dict[str, Any]:
@@ -65,8 +70,11 @@ def validate_registry(registry: dict[str, Any]) -> list[str]:
     styles = registry.get("styles")
     if not isinstance(styles, dict):
         return ["styles must be an object"]
-    if len(styles) != 20:
-        errors.append(f"expected exactly 20 styles, found {len(styles)}")
+    expected_count = registry.get("expected_style_count", 20)
+    if not isinstance(expected_count, int) or expected_count < 1:
+        errors.append("expected_style_count must be a positive integer")
+    elif len(styles) != expected_count:
+        errors.append(f"expected exactly {expected_count} styles, found {len(styles)}")
 
     for preset_group in (
         "strength_presets",
@@ -79,6 +87,26 @@ def validate_registry(registry: dict[str, Any]) -> list[str]:
 
     lighting = registry.get("lighting_presets", {})
     shadows = registry.get("shadow_presets", {})
+    for preset_id, preset in lighting.items():
+        for field in ("direction", "softness", "intensity", "temperature"):
+            if field not in preset:
+                errors.append(f"lighting_presets.{preset_id}: missing {field}")
+        for field in ("softness", "intensity"):
+            value = preset.get(field)
+            if not isinstance(value, (int, float)) or not 0 <= value <= 1:
+                errors.append(
+                    f"lighting_presets.{preset_id}.{field} must be between 0 and 1"
+                )
+    for preset_id, preset in shadows.items():
+        for field in ("distance", "blur", "opacity"):
+            if not isinstance(preset.get(field), (int, float)):
+                errors.append(f"shadow_presets.{preset_id}.{field} must be numeric")
+        opacity = preset.get("opacity")
+        if isinstance(opacity, (int, float)) and not 0 <= opacity <= 1:
+            errors.append(f"shadow_presets.{preset_id}.opacity must be between 0 and 1")
+    reference_orders: list[int] = []
+    reference_hashes: list[str] = []
+    requires_reference_anchor = isinstance(registry.get("reference_set"), dict)
     for style_id, style in styles.items():
         if not re.fullmatch(r"[a-z0-9_]+", style_id):
             errors.append(f"{style_id}: style_id must use lowercase letters, digits, underscores")
@@ -103,15 +131,51 @@ def validate_registry(registry: dict[str, Any]) -> list[str]:
             errors.append(f"{style_id}: unknown recommended lighting preset")
         if style.get("shadow", {}).get("recommended_preset") not in shadows:
             errors.append(f"{style_id}: unknown recommended shadow preset")
+        if requires_reference_anchor:
+            anchor = style.get("reference_anchor")
+            if not isinstance(anchor, dict):
+                errors.append(f"{style_id}: missing reference_anchor")
+            else:
+                order = anchor.get("order")
+                source_file = anchor.get("source_file")
+                source_hash = anchor.get("sha256")
+                observed_base = anchor.get("observed_base")
+                visual_signature = anchor.get("visual_signature")
+                if not isinstance(order, int):
+                    errors.append(f"{style_id}: reference_anchor.order must be an integer")
+                else:
+                    reference_orders.append(order)
+                if not isinstance(source_file, str) or not source_file.strip():
+                    errors.append(f"{style_id}: reference_anchor.source_file is required")
+                if not isinstance(source_hash, str) or not SHA256.fullmatch(source_hash):
+                    errors.append(f"{style_id}: reference_anchor.sha256 must be lowercase SHA-256")
+                else:
+                    reference_hashes.append(source_hash)
+                if not isinstance(observed_base, str) or not HEX_COLOR.fullmatch(observed_base):
+                    errors.append(f"{style_id}: invalid reference_anchor.observed_base")
+                if not isinstance(visual_signature, str) or not visual_signature.strip():
+                    errors.append(f"{style_id}: reference_anchor.visual_signature is required")
+
+    if requires_reference_anchor:
+        expected_orders = list(range(1, len(styles) + 1))
+        if sorted(reference_orders) != expected_orders:
+            errors.append(
+                f"reference_anchor.order must be unique and cover 1..{len(styles)}"
+            )
+        if len(reference_hashes) != len(set(reference_hashes)):
+            errors.append("reference_anchor.sha256 values must be unique")
 
     known = set(styles)
     for index, route in enumerate(registry.get("routing", [])):
         for style_id in route.get("styles", []):
             if style_id not in known:
                 errors.append(f"routing[{index}]: unknown style {style_id}")
-    for style_id in registry.get("diverse_default_order", []):
+    diverse_order = registry.get("diverse_default_order", [])
+    for style_id in diverse_order:
         if style_id not in known:
             errors.append(f"diverse_default_order: unknown style {style_id}")
+    if len(diverse_order) != len(styles) or set(diverse_order) != known:
+        errors.append("diverse_default_order must contain every style exactly once")
     return errors
 
 
@@ -261,10 +325,20 @@ def compile_prompt(resolved: dict[str, Any], registry: dict[str, Any]) -> str:
     atmosphere = ", ".join(style["atmosphere"]["keywords"])
     avoid = ", ".join(style["avoid"])
     negative = ", ".join(registry["negative_prompt"])
+    light_pattern = lighting.get("pattern", "natural low-contrast illumination")
+    safe_zone = lighting.get("safe_zone", "keep the subject-safe region restrained")
+    anchor = style.get("reference_anchor")
+    reference_identity = ""
+    if isinstance(anchor, dict):
+        reference_identity = f"""[REFERENCE-LOCKED STYLE IDENTITY]
+Gallery order: {anchor['order']:02d}. Visual signature: {anchor['visual_signature']}.
+Use the reference only for background material, light pattern, tonal falloff and spatial depth. Never copy its photograph, people, text, codes or ticket content.
+
+"""
     return f"""[SUBJECT PRESERVATION]
 {resolved['subject_preservation']['instruction']}
 
-[BACKGROUND MATERIAL]
+{reference_identity}[BACKGROUND MATERIAL]
 {material['primary']}; secondary material: {material['secondary']}; realism: {material['realism']}.
 {style['prompt_fragment']}.
 
@@ -278,6 +352,7 @@ Overall style intensity: {resolved['strength']['effective']:.2f} (requested {res
 
 [LIGHT]
 Preset {lighting['preset']}; direction: {lighting['direction']}; softness: {lighting['softness']:.2f}; intensity: {lighting['intensity']:.2f}; temperature: {lighting['temperature']}.
+Pattern: {light_pattern}. Ticket-safe behavior: {safe_zone}.
 
 [SHADOW]
 Preset {shadow['preset']}; distance: {shadow['distance']}; blur: {shadow['blur']}; opacity: {shadow['opacity']:.2f}.
@@ -329,10 +404,20 @@ def main() -> None:
         dump_json({"status": "error", "errors": errors})
         raise SystemExit(1)
     if args.command == "validate":
-        dump_json({"status": "ok", "version": registry["version"], "style_count": len(registry["styles"])})
+        dump_json({
+            "status": "ok",
+            "version": registry["version"],
+            "style_count": len(registry["styles"]),
+            "reference_set": registry.get("reference_set", {}).get("name"),
+        })
     elif args.command == "list":
         dump_json([
-            {"style_id": style_id, "name": style["name"], "category": style["category"]}
+            {
+                "style_id": style_id,
+                "name": style["name"],
+                "category": style["category"],
+                "reference_order": style.get("reference_anchor", {}).get("order"),
+            }
             for style_id, style in registry["styles"].items()
         ])
     elif args.command == "recommend":

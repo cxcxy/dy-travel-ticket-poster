@@ -12,8 +12,8 @@
 - 最终照片面板直接使用原始文件像素做等比例裁切与高质量缩放，不使用生成模型重构图，不经过 JPEG 有损中间转码
 - 在主体完整的前提下保留足够的环境信息
 - 根据每张照片调整海报背景和信息联配色
-- 可用 20 个 `style_id` 调用完整材质、色彩、纹理、光线、阴影和纵深系统
-- 支持 `subtle / balanced / strong` 强度、6 种光线、4 种阴影和严格主体保护
+- 可用图集锁定的 12 个 `style_id` 调用完整材质、色彩、纹理、光线、阴影和纵深系统
+- 支持 `subtle / balanced / strong` 强度、通用与图集专用光线、4 种阴影和严格主体保护
 - 用户不记得风格名时，可按题材与氛围推荐差异明显的多套背景
 - 优先采用用户给出的标题、地点和日期
 - 地点无法可靠确认时，改用中性场景词
@@ -37,37 +37,29 @@
 
 完整的版式参数见 [references/style-spec.md](references/style-spec.md)。
 
-## 背景风格系统 V2
+## 图集锁定的 12 种背景风格
 
-显式指定风格后，Skill 会从 [references/background-styles.json](references/background-styles.json) 解析完整配置，而不是只替换一个米色。材质、光线和阴影彼此可组合；默认使用 `balanced` 强度和 `strict` 主体保护。未指定风格时仍保留原来的逐图纯色逻辑。
+显式指定风格后，Skill 会从 [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json) 解析完整配置，而不是只替换一个米色。12 种风格由用户提供的 12 张图集逐张提炼，并用原文件名、SHA-256、实测背景中值色与视觉签名锁定来源；只迁移背景材质、光型、明暗衰减和空间关系，不复制参考照片、人物、文字或编号。材质、光线和阴影彼此可组合；默认使用 `balanced` 强度和 `strict` 主体保护。未指定风格时仍保留原来的逐图纯色逻辑。通用 20 风格基线继续保存在 [references/background-styles.json](references/background-styles.json)，可通过 `--registry` 显式调用。
 
 | `style_id` | 中文名 | 主要材质 / 氛围 |
 | --- | --- | --- |
-| `warm_greige_linen` | 暖灰亚麻质感 | 亚麻、极简、编辑感 |
-| `cream_art_paper` | 奶油艺术纸 | 艺术纸、印刷、干净 |
-| `soft_sand_gradient` | 柔雾沙丘渐变 | 自然明度变化、柔雾 |
-| `wabi_sabi_plaster` | 侘寂石灰墙 | 石灰墙、手工、侘寂 |
-| `warm_gray_cinematic` | 暖灰电影哑光 | 电影灰、细颗粒、摄影 |
-| `caramel_bokeh` | 焦糖光斑 | 咖啡、午后、暖光 |
-| `handmade_washi` | 手工和纸 | 和纸、日本、现代手作 |
-| `ivory_minimal_studio` | 象牙白极简展台 | 展台、画廊、通用极简 |
-| `mushroom_suede` | 蘑菇灰麂皮 | 麂皮、柔软、精品感 |
-| `soft_spotlight` | 中心聚光柔影 | 柔光、聚焦、展示 |
-| `premium_beige_fabric` | 高级米色织物 | 细密织物、现代家居 |
-| `cream_mineral_wall` | 奶油矿物墙 | 矿物涂料、建筑、干净 |
-| `travertine_luxury` | 洞石建筑质感 | 洞石、酒店、静奢 |
-| `frosted_cream` | 奶霜柔雾 | 粉雾哑光、轻盈 |
-| `window_shadow_stucco` | 窗影艺术墙 | 灰泥墙、午后窗影 |
-| `natural_cotton_paper` | 天然棉纸 | 棉浆纸、手工印刷 |
-| `warm_leather` | 暖棕皮革 | 哑光皮革、精品咖啡 |
-| `pearl_satin` | 珍珠缎面 | 珍珠漫反射、画廊 |
-| `sand_microcement` | 沙色微水泥 | 微水泥、北欧建筑 |
-| `vintage_parchment` | 复古羊皮纸光影 | 旅行记忆、克制怀旧 |
+| `warm_linen_side_light` | 暖灰亚麻侧光 | 亚麻墙布、右侧宽幅柔光 |
+| `ivory_paper_window_veil` | 象牙艺术纸柔窗影 | 艺术纸、高明度柔斜影 |
+| `sand_center_glow` | 沙岩中心柔光 | 沙色矿物墙、中心纵向柔光 |
+| `mushroom_cinematic_vignette` | 蘑菇灰电影墙 | 暖灰矿物墙、成熟边缘衰减 |
+| `caramel_dappled_sun` | 焦糖树影墙 | 焦糖石灰墙、虚化午后光斑 |
+| `natural_washi_halo` | 天然和纸柔光 | 手工和纸、顶部中央漫射光 |
+| `greige_stucco_soft_beams` | 暖灰灰泥柔影 | 灰泥墙、宽幅纵向柔影 |
+| `ivory_stucco_window_beam` | 象牙灰泥窗光 | 象牙灰泥、建筑斜向窗光 |
+| `cream_limewash_diffusion` | 奶油石灰墙漫射 | 石灰墙、宽阔不规则漫射 |
+| `ivory_travertine_diagonal` | 象牙洞石斜光 | 明亮洞石、宽幅斜光 |
+| `cotton_paper_top_glow` | 棉纸顶光 | 天然棉纸、对称顶光 |
+| `caramel_mineral_spotlight` | 焦糖矿物聚光 | 深焦糖矿物墙、左上聚光 |
 
 直接调用：
 
 ```text
-使用 $dy-travel-ticket-poster，把背景改成 travertine_luxury，强度 balanced，使用 soft_daylight 和 premium_float；主体保护 strict。
+使用 $dy-travel-ticket-poster，把背景改成 ivory_travertine_diagonal，强度 balanced，使用 stone_diagonal 和 architectural；主体保护 strict。
 ```
 
 也可以只描述意图：
@@ -81,7 +73,8 @@
 ```bash
 python3 scripts/background_style_system.py validate
 python3 scripts/background_style_system.py recommend --context "高级温暖的旅行票根" --count 10
-python3 scripts/background_style_system.py prompt --style-id travertine_luxury --strength balanced
+python3 scripts/background_style_system.py prompt --style-id ivory_travertine_diagonal --strength balanced
+python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/gallery"
 ```
 
 ## 安装与工具支持
@@ -152,7 +145,7 @@ Plugin 不会自动获得本地私人照片；仍需由用户明确选择或授�
 使用 $dy-travel-ticket-poster 处理这张照片，标题用 WATERFRONT，日期用 2026 - 08。
 ```
 
-工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 完成栅格编辑。V2 风格模式会先生成无主体的背景底图，再通过 [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 回填原始照片像素和票根，最后目视检查并输出标准尺寸成品。
+工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 完成栅格编辑。图集风格模式会先生成无主体的背景底图，再通过 [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 回填原始照片像素和票根，最后目视检查并输出标准尺寸成品。
 
 ## 信息生成规则
 
@@ -297,6 +290,7 @@ bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ├── agents/openai.yaml
 ├── assets/cases/
 ├── references/background-styles.json
+├── references/gallery-12-background-styles.json
 ├── references/prompt-template.md
 ├── references/style-spec.md
 ├── scripts/background_style_system.py
@@ -305,6 +299,7 @@ bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ├── scripts/normalize_output.sh
 ├── scripts/normalize_reference_layout.py
 ├── scripts/recolor_existing_poster.py
+├── scripts/validate_gallery_references.py
 └── tests/
 ```
 

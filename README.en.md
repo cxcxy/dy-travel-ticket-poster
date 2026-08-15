@@ -12,8 +12,8 @@ The final deliverable for each photo is a clean `1170 × 1560` PNG in a `3:4` as
 - Builds the final photo panel directly from original source pixels with aspect-preserving cropping and high-quality resampling; never uses a model-reconstructed panel or a lossy JPEG intermediate
 - Selects a crop that keeps the main subject and enough environmental context
 - Adapts the background and ticket-stub colors to each photograph
-- Resolves 20 material-aware `style_id` presets with color, texture, lighting, shadow, and depth
-- Supports `subtle / balanced / strong` intensity, six lighting presets, four shadow presets, and strict subject preservation
+- Resolves 12 gallery-locked `style_id` presets with color, texture, lighting, shadow, and depth
+- Supports `subtle / balanced / strong` intensity, generic and gallery-specific lighting, four shadow presets, and strict subject preservation
 - Recommends materially different options when the user asks for multiple backgrounds
 - Uses user-provided titles and dates when available
 - Falls back to a neutral scene title when the location cannot be verified
@@ -37,26 +37,25 @@ The poster uses a restrained, repeatable layout.
 
 Full construction details are in [references/style-spec.md](references/style-spec.md).
 
-## Background Style System V2
+## Gallery-Locked 12-Style Background System
 
-When a style is requested, the Skill resolves a complete material specification from [references/background-styles.json](references/background-styles.json), rather than changing only a beige color. Material, lighting, and shadow remain independently composable. The default is `balanced` strength with `strict` subject preservation; the original photo-derived solid background remains the fallback when no style is requested.
+When a style is requested, the Skill resolves a complete material specification from [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json), rather than changing only a beige color. The 12 styles were distilled one-by-one from the user-supplied gallery and are anchored by source filename, SHA-256, measured background median, and a visual signature. Only background material, light pattern, tonal falloff, and spatial depth are transferred; the reference photograph, people, text, and codes are never copied. Material, lighting, and shadow remain independently composable. The default is `balanced` strength with `strict` subject preservation; the original photo-derived solid background remains the fallback when no style is requested. The generic 20-style baseline remains available in [references/background-styles.json](references/background-styles.json) through an explicit `--registry` override.
 
-The 20 IDs are:
+The 12 default IDs are:
 
 ```text
-warm_greige_linen       cream_art_paper        soft_sand_gradient
-wabi_sabi_plaster       warm_gray_cinematic    caramel_bokeh
-handmade_washi          ivory_minimal_studio   mushroom_suede
-soft_spotlight          premium_beige_fabric   cream_mineral_wall
-travertine_luxury       frosted_cream           window_shadow_stucco
-natural_cotton_paper    warm_leather            pearl_satin
-sand_microcement        vintage_parchment
+warm_linen_side_light          ivory_paper_window_veil
+sand_center_glow               mushroom_cinematic_vignette
+caramel_dappled_sun            natural_washi_halo
+greige_stucco_soft_beams       ivory_stucco_window_beam
+cream_limewash_diffusion       ivory_travertine_diagonal
+cotton_paper_top_glow          caramel_mineral_spotlight
 ```
 
 Example:
 
 ```text
-Use $dy-travel-ticket-poster with travertine_luxury, balanced strength, soft_daylight, premium_float, and strict subject preservation.
+Use $dy-travel-ticket-poster with ivory_travertine_diagonal, balanced strength, stone_diagonal, architectural shadow, and strict subject preservation.
 ```
 
 The deterministic helper validates the registry, recommends diverse styles, resolves presets, and compiles the image prompt:
@@ -64,7 +63,8 @@ The deterministic helper validates the registry, recommends diverse styles, reso
 ```bash
 python3 scripts/background_style_system.py validate
 python3 scripts/background_style_system.py recommend --context "premium warm travel ticket" --count 10
-python3 scripts/background_style_system.py prompt --style-id travertine_luxury --strength balanced
+python3 scripts/background_style_system.py prompt --style-id ivory_travertine_diagonal --strength balanced
+python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/gallery"
 ```
 
 ## Installation and tool support
@@ -135,7 +135,7 @@ You can also provide explicit metadata.
 Use $dy-travel-ticket-poster for this photo. Title it WATERFRONT and use 2026 - 08.
 ```
 
-For each input, the workflow inspects the photo, chooses a safe crop, and prepares the ticket metadata. V2 style mode generates an empty background plate, then [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) deterministically restores the original photo pixels and ticket over that plate before final review.
+For each input, the workflow inspects the photo, chooses a safe crop, and prepares the ticket metadata. Gallery style mode generates an empty background plate, then [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) deterministically restores the original photo pixels and ticket over that plate before final review.
 
 ## Metadata behavior
 
@@ -278,6 +278,7 @@ The following examples show the supplied source photo beside the generated trave
 ├── agents/openai.yaml
 ├── assets/cases/
 ├── references/background-styles.json
+├── references/gallery-12-background-styles.json
 ├── references/prompt-template.md
 ├── references/style-spec.md
 ├── scripts/background_style_system.py
@@ -286,6 +287,7 @@ The following examples show the supplied source photo beside the generated trave
 ├── scripts/normalize_output.sh
 ├── scripts/normalize_reference_layout.py
 ├── scripts/recolor_existing_poster.py
+├── scripts/validate_gallery_references.py
 └── tests/
 ```
 

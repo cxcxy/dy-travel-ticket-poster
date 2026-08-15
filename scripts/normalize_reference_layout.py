@@ -243,7 +243,7 @@ def main() -> None:
     background_group.add_argument(
         "--background-image",
         type=Path,
-        help="Exact 1170x1560 background-only plate generated from a V2 style prompt",
+        help="Exact 1170x1560 background-only plate generated from a configured style prompt",
     )
     parser.add_argument(
         "--shadow-preset",

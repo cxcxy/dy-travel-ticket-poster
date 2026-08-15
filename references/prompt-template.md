@@ -1,6 +1,6 @@
 # 图片编辑提示词模板
 
-每张照片单独处理。先判断使用默认纯色背景还是 V2 风格背景；不要把两套背景要求同时写进一条提示词。
+每张照片单独处理。先判断使用默认纯色背景还是图集锁定风格背景；不要把两套背景要求同时写进一条提示词。
 
 ## A. 票根主体预览
 
@@ -39,7 +39,7 @@ Use only Image 1 for the photo panel. Crop intelligently to 774 x 507, about 1.5
 
 [TEMPORARY OUTER BACKGROUND]
 - Adaptive solid mode: use [HEX], derived from Image 1 at HSL saturation 6-20% and lightness 58-62%; one flat edge-to-edge color, no texture or gradient.
-- V2 style mode: use a quiet flat placeholder only. Do not attempt the final material background in this pass.
+- Gallery style mode: use a quiet flat placeholder only. Do not attempt the final material background in this pass.
 
 [TYPOGRAPHY AND EXACT TEXT]
 Heavy uppercase geometric sans-serif, left aligned with generous padding. Render exactly these lines and no other text:
@@ -54,9 +54,9 @@ Below the code, add one small decorative barcode made of varied vertical bars in
 Clean finished poster only. No mobile status bar, time, battery, Wi-Fi, notifications, player controls, progress bars, watermark, signature, logos, captions, outside frames or extra text.
 ```
 
-## B. V2 背景底图
+## B. 图集锁定背景底图
 
-先运行 `scripts/background_style_system.py prompt ...` 得到完整的风格 Prompt，再在末尾追加下面的输出约束。此请求只生成背景，不上传私人照片，也不让模型接触主体。
+先运行 `scripts/background_style_system.py prompt ...`，从默认的 `gallery-12-background-styles.json` 得到带参考视觉签名的完整 Prompt，再在末尾追加下面的输出约束。此请求只生成背景，不上传私人照片，也不让模型接触主体。参考图只用于提炼材质、光型、明暗衰减与纵深；禁止复制图集里的照片、人物、文字、编号和条形码。
 
 ```text
 [OUTPUT PLATE]
