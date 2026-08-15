@@ -6,13 +6,119 @@ Turn one photo or a batch of photos into a consistent series of travel-ticket po
 
 The final deliverable for each photo is a clean `1170 × 1560` PNG in a `3:4` aspect ratio. Phone UI, notifications, player controls, and watermarks are excluded from the poster.
 
-## 2026-08-15 update
+## Reference cases
 
-- Added 12 gallery-locked configurable background styles addressable by order, Chinese display name, or canonical `style_id`.
-- Changed the no-style default to a photo-derived near-solid background with extremely subtle monochrome tactile texture. The texture is held to roughly `base ±3`; gradients, vignettes, window shadows, leaf shadows, and spotlights are not added by default.
-- Batch inputs now derive one theme hue per final photo crop. A shared color family is used only when explicitly requested.
-- Added a [GitHub Pages gallery for all 12 styles](https://cxcxy.github.io/dy-travel-ticket-poster/) with material filters, full previews, and copyable invocation text.
-- Added [scripts/build_pages_gallery.py](scripts/build_pages_gallery.py) to regenerate the site data and optimized WebP previews from the locked registry after validating all 12 source SHA-256 anchors.
+The examples below show the supplied source photo beside the generated travel-ticket poster. The documentation displays each preview at a suitable width, while the working output remains a `1170 × 1560` PNG.
+
+### 01 · Coffee counter
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/coffee-original.jpg" width="360" alt="Original photo of a coffee counter"></td>
+    <td><img src="assets/cases/coffee-ticket.jpg" width="360" alt="Coffee photo converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 02 · Koala encounter
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/koala-original.jpg" width="360" alt="Original portrait with a koala"></td>
+    <td><img src="assets/cases/koala-ticket.png" width="360" alt="Koala portrait converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 03 · Heritage architecture
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/heritage-original.jpg" width="360" alt="Original portrait at a heritage building"></td>
+    <td><img src="assets/cases/heritage-ticket.jpg" width="360" alt="Heritage portrait converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 04 · Open-air theater
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/theater-original.jpg" width="360" alt="Original photo of an open-air theater"></td>
+    <td><img src="assets/cases/theater-ticket.jpg" width="360" alt="Theater photo converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 05 · Boutique interior
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/boutique-original.jpg" width="360" alt="Original photo of a boutique interior"></td>
+    <td><img src="assets/cases/boutique-ticket.jpg" width="360" alt="Boutique interior converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 06 · Old town street
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/old-town-original.jpg" width="360" alt="Original photo of a colorful old town street"></td>
+    <td><img src="assets/cases/old-town-ticket.jpg" width="360" alt="Old town street converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 07 · Café table
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/cafe-original.jpg" width="360" alt="Original overhead photo of coffee and cake"></td>
+    <td><img src="assets/cases/cafe-ticket.jpg" width="360" alt="Cafe table photo converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 08 · Desert drive
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/desert-original.jpg" width="360" alt="Original photo of a red vehicle in the desert"></td>
+    <td><img src="assets/cases/desert-ticket.jpg" width="360" alt="Desert vehicle photo converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 09 · Waterfront photographer
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/waterfront-original.jpg" width="360" alt="Original waterfront portrait with a camera"></td>
+    <td><img src="assets/cases/waterfront-ticket.jpg" width="360" alt="Waterfront portrait converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 10 · Lakeside view
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/lakeside-original.jpg" width="360" alt="Original photo of a person sitting beside a lake"></td>
+    <td><img src="assets/cases/lakeside-ticket.jpg" width="360" alt="Lakeside photo converted into a travel-ticket poster"></td>
+  </tr>
+</table>
+
+### 11 · Gold house
+
+<table>
+  <tr><th>Original</th><th>Generated ticket poster</th></tr>
+  <tr>
+    <td><img src="assets/cases/gold-house-original.jpg" width="360" alt="Original photo of a yellow residential building"></td>
+    <td><img src="assets/cases/gold-house-ticket.jpg" width="360" alt="Yellow building converted into a travel-ticket poster"></td>
+  </tr>
+</table>
 
 ## What the Skill handles
 
@@ -191,118 +297,6 @@ The normalizer can be run directly after visual approval.
 bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ```
 
-## Reference cases
-
-The following examples show the supplied source photo beside the generated travel-ticket poster. The documentation displays each preview at a suitable width, while the working output remains a `1170 × 1560` PNG.
-
-### 01 · Coffee counter
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/coffee-original.jpg" width="360" alt="Original photo of a coffee counter"></td>
-    <td><img src="assets/cases/coffee-ticket.jpg" width="360" alt="Coffee photo converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 02 · Koala encounter
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/koala-original.jpg" width="360" alt="Original portrait with a koala"></td>
-    <td><img src="assets/cases/koala-ticket.png" width="360" alt="Koala portrait converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 03 · Heritage architecture
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/heritage-original.jpg" width="360" alt="Original portrait at a heritage building"></td>
-    <td><img src="assets/cases/heritage-ticket.jpg" width="360" alt="Heritage portrait converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 04 · Open-air theater
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/theater-original.jpg" width="360" alt="Original photo of an open-air theater"></td>
-    <td><img src="assets/cases/theater-ticket.jpg" width="360" alt="Theater photo converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 05 · Boutique interior
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/boutique-original.jpg" width="360" alt="Original photo of a boutique interior"></td>
-    <td><img src="assets/cases/boutique-ticket.jpg" width="360" alt="Boutique interior converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 06 · Old town street
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/old-town-original.jpg" width="360" alt="Original photo of a colorful old town street"></td>
-    <td><img src="assets/cases/old-town-ticket.jpg" width="360" alt="Old town street converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 07 · Café table
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/cafe-original.jpg" width="360" alt="Original overhead photo of coffee and cake"></td>
-    <td><img src="assets/cases/cafe-ticket.jpg" width="360" alt="Cafe table photo converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 08 · Desert drive
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/desert-original.jpg" width="360" alt="Original photo of a red vehicle in the desert"></td>
-    <td><img src="assets/cases/desert-ticket.jpg" width="360" alt="Desert vehicle photo converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 09 · Waterfront photographer
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/waterfront-original.jpg" width="360" alt="Original waterfront portrait with a camera"></td>
-    <td><img src="assets/cases/waterfront-ticket.jpg" width="360" alt="Waterfront portrait converted into a travel-ticket poster"></td>
-  </tr>
-### 10 · Lakeside view
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/lakeside-original.jpg" width="360" alt="Original photo of a person sitting beside a lake"></td>
-    <td><img src="assets/cases/lakeside-ticket.jpg" width="360" alt="Lakeside photo converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
-### 11 · Gold house
-
-<table>
-  <tr><th>Original</th><th>Generated ticket poster</th></tr>
-  <tr>
-    <td><img src="assets/cases/gold-house-original.jpg" width="360" alt="Original photo of a yellow residential building"></td>
-    <td><img src="assets/cases/gold-house-ticket.jpg" width="360" alt="Yellow building converted into a travel-ticket poster"></td>
-  </tr>
-</table>
-
 ## Repository layout
 
 ```text
@@ -321,3 +315,11 @@ The following examples show the supplied source photo beside the generated trave
 ## Content boundaries
 
 The Skill does not invent a city when the image cannot support one. It also avoids adding new people, animals, products, vehicles, buildings, logos, or other identity-bearing details. Any background extension is limited to non-semantic scenery and should be disclosed with the delivery.
+
+## 2026-08-15 update
+
+- Added 12 gallery-locked configurable background styles addressable by order, Chinese display name, or canonical `style_id`.
+- Changed the no-style default to a photo-derived near-solid background with extremely subtle monochrome tactile texture. The texture is held to roughly `base ±3`; gradients, vignettes, window shadows, leaf shadows, and spotlights are not added by default.
+- Batch inputs now derive one theme hue per final photo crop. A shared color family is used only when explicitly requested.
+- Added a [GitHub Pages gallery for all 12 styles](https://cxcxy.github.io/dy-travel-ticket-poster/) with material filters, full previews, and copyable invocation text.
+- Added [scripts/build_pages_gallery.py](scripts/build_pages_gallery.py) to regenerate the site data and optimized WebP previews from the locked registry after validating all 12 source SHA-256 anchors.

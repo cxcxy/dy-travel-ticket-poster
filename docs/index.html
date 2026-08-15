@@ -10,10 +10,10 @@
     >
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23171714'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Arial' font-weight='800' font-size='26' fill='white'%3EDY%3C/text%3E%3C/svg%3E">
     <title>DY 旅行票根 · 12 风格预览</title>
-    <link rel="stylesheet" href="styles.css?v=20260815-taste4">
+    <link rel="stylesheet" href="styles.css?v=20260815-layout2">
   </head>
   <body>
-    <a class="skip-link" href="#default">跳到默认模式</a>
+    <a class="skip-link" href="#cases">跳到参考案例</a>
     <header class="site-header">
       <a class="brand" href="#top" aria-label="返回顶部">
         <span class="brand-mark" aria-hidden="true">DY</span>
@@ -23,7 +23,8 @@
         </span>
       </a>
       <nav aria-label="主导航">
-        <a href="#default">默认模式</a>
+        <a href="#cases">参考案例</a>
+        <a href="#default">能做什么</a>
         <a href="#gallery">12 种风格</a>
         <a href="#update">本次更新</a>
         <a href="https://github.com/cxcxy/dy-travel-ticket-poster#readme">使用文档</a>
@@ -32,24 +33,13 @@
     </header>
 
     <main id="top">
-      <section class="hero shell" id="default">
-        <div class="hero-copy">
-          <p class="eyebrow">DY TRAVEL TICKET POSTER</p>
-          <h1>不选风格，也有干净的默认答案。</h1>
-          <p class="hero-intro">
-            默认按照片主题色生成轻质感背景；选定风格后，再调用对应材质、光线和阴影。
+      <section class="reference-cases shell" id="cases" aria-labelledby="cases-title">
+        <div class="reference-cases-copy">
+          <p class="eyebrow">参考案例 / REFERENCE CASES</p>
+          <h2 id="cases-title">先看成品，再选风格。</h2>
+          <p>
+            这里放入真实票根成品，按原始 <strong>3:4</strong> 比例轮播展示。确认喜欢的构图和质感后，再进入“能做什么”和 12 种背景风格。
           </p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#gallery">查看 12 种效果</a>
-            <button class="button button-secondary" id="copy-default" type="button">
-              复制默认调用语句
-            </button>
-          </div>
-          <dl class="hero-stats" aria-label="核心规格">
-            <div><dt>12</dt><dd>锁定风格</dd></div>
-            <div><dt>3:4</dt><dd>标准画布</dd></div>
-            <div><dt>STRICT</dt><dd>主体保护</dd></div>
-          </dl>
         </div>
         <figure
           class="hero-preview hero-carousel"
@@ -87,6 +77,27 @@
         </figure>
       </section>
 
+      <section class="hero capabilities shell" id="default" aria-labelledby="capabilities-title">
+        <div class="hero-copy">
+          <p class="eyebrow">能做什么 / WHAT IT DOES</p>
+          <h1 id="capabilities-title">不选风格，也有干净的默认答案。</h1>
+          <p class="hero-intro">
+            默认按照片主题色生成轻质感背景；选定风格后，再调用对应材质、光线和阴影。
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#gallery">查看 12 种效果</a>
+            <button class="button button-secondary" id="copy-default" type="button">
+              复制默认调用语句
+            </button>
+          </div>
+          <dl class="hero-stats" aria-label="核心规格">
+            <div><dt>12</dt><dd>锁定风格</dd></div>
+            <div><dt>3:4</dt><dd>标准画布</dd></div>
+            <div><dt>STRICT</dt><dd>主体保护</dd></div>
+          </dl>
+        </div>
+      </section>
+
       <section class="gallery-section shell" id="gallery" aria-labelledby="gallery-title">
         <div class="gallery-heading">
           <div class="section-heading gallery-title-group">
@@ -107,6 +118,16 @@
 
         <div class="style-grid" id="style-grid"></div>
         <noscript>此页面需要启用 JavaScript 才能载入 12 种风格卡片。</noscript>
+      </section>
+
+      <section class="usage shell" aria-labelledby="usage-title">
+        <div>
+          <h2 id="usage-title">丢一张图，选一种风格。</h2>
+        </div>
+        <div class="usage-command">
+          <code>把这张图片做成票根，使用第10种，其他按默认。</code>
+          <button type="button" data-copy="把这张图片做成票根，使用第10种，其他按默认。">复制</button>
+        </div>
       </section>
 
       <section class="update shell" id="update">
@@ -131,16 +152,6 @@
             <h3>原图像素回填</h3>
             <p>照片区由原始文件等比例裁切与高质量缩放，不让生成模型重画、压扁或改动主体。</p>
           </article>
-        </div>
-      </section>
-
-      <section class="usage shell" aria-labelledby="usage-title">
-        <div>
-          <h2 id="usage-title">丢一张图，选一种风格。</h2>
-        </div>
-        <div class="usage-command">
-          <code>把这张图片做成票根，使用第10种，其他按默认。</code>
-          <button type="button" data-copy="把这张图片做成票根，使用第10种，其他按默认。">复制</button>
         </div>
       </section>
     </main>

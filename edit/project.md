@@ -412,3 +412,12 @@
 - 反馈：成功提示改为 `已复制：<中文名>`；浏览器不支持剪贴板时，回退提示为“请复制下面的中文名”。
 - 验证：本地页面实测风格卡复制“沙岩中心柔光”，详情弹窗复制“暖灰亚麻侧光”，剪贴板内容与成功提示均完全一致；弹窗可正常打开、关闭。JavaScript 语法检查、官方 Skill 校验和 `git diff --check` 通过。
 - Git 边界：仍只在本地分支修改，未暂存、未提交、未推送。
+
+## 2026-08-15 · 参考案例前置与更新说明后置
+
+- 用户要求：把参考案例放在“能做什么”前面，并将更新说明放到页面与文档的最下面。
+- 网站结构：GitHub Pages 首页调整为“参考案例轮播 → 能做什么（默认模式）→ 12 种风格 → 使用方式 → 本次更新”；新增 `#cases` 导航锚点与独立参考案例标题，保留 15 张轮播素材、原始 3:4 完整展示和现有控制交互。
+- 文档结构：`README.md` 与 `README.en.md` 均将完整参考案例移到能力说明之前，并将 2026-08-15 更新说明移到文档末尾。
+- 验证：HTML 无重复 id，section 顺序为 `cases → default → gallery → usage → update`；`docs/app.js`、`docs/style-data.js`、`docs/carousel-data.js` 通过 Node 语法检查；`git diff --check` 通过。已在 Codex 浏览器面板打开本地页面供目视复核。
+- 输出：`docs/index.html`、`docs/styles.css`、`README.md`、`README.en.md`。
+- Git 边界：仍只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。

@@ -6,13 +6,119 @@
 
 每张照片最终交付一张 `1170 × 1560`、`3:4`、无透明通道的 PNG。成品中不会保留手机状态栏、通知、播放器控件和水印。
 
-## 2026-08-15 更新
+## 参考案例
 
-- 新增图集锁定的 12 种可配置背景风格，可使用序号、中文名或 `style_id` 选择。
-- 未指定风格时，默认改为照片主题色驱动的“近似纯色 + 极轻微单色质感”背景；纹理严格限制在基色约 `±3`，不自动加入渐变、暗角、窗影、树影或聚光。
-- 批量任务默认由每张照片独立提取主题色；只有明确要求“统一色系”时才共享同一颜色。
-- 新增 [GitHub Pages 12 风格预览站](https://cxcxy.github.io/dy-travel-ticket-poster/)，支持材质筛选、放大查看和复制调用语句。
-- 新增 [scripts/build_pages_gallery.py](scripts/build_pages_gallery.py)，可从锁定注册表和原始图集重新生成网页数据与轻量 WebP 预览，生成前会校验 12 张参考图的 SHA-256。
+下面先展示本次提供的原始照片和对应票根成品。文档页面会按合适宽度显示预览，实际工作流输出仍为 `1170 × 1560` PNG。
+
+### 01 · 咖啡吧台
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/coffee-original.jpg" width="360" alt="咖啡吧台原图"></td>
+    <td><img src="assets/cases/coffee-ticket.jpg" width="360" alt="咖啡吧台票根海报"></td>
+  </tr>
+</table>
+
+### 02 · 考拉合影
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/koala-original.jpg" width="360" alt="考拉合影原图"></td>
+    <td><img src="assets/cases/koala-ticket.png" width="360" alt="考拉合影票根海报"></td>
+  </tr>
+</table>
+
+### 03 · 历史建筑
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/heritage-original.jpg" width="360" alt="历史建筑人物原图"></td>
+    <td><img src="assets/cases/heritage-ticket.jpg" width="360" alt="历史建筑人物票根海报"></td>
+  </tr>
+</table>
+
+### 04 · 露天剧场
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/theater-original.jpg" width="360" alt="露天剧场原图"></td>
+    <td><img src="assets/cases/theater-ticket.jpg" width="360" alt="露天剧场票根海报"></td>
+  </tr>
+</table>
+
+### 05 · 精品店陈列
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/boutique-original.jpg" width="360" alt="精品店陈列原图"></td>
+    <td><img src="assets/cases/boutique-ticket.jpg" width="360" alt="精品店陈列票根海报"></td>
+  </tr>
+</table>
+
+### 06 · 老城街道
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/old-town-original.jpg" width="360" alt="彩色老城街道原图"></td>
+    <td><img src="assets/cases/old-town-ticket.jpg" width="360" alt="彩色老城街道票根海报"></td>
+  </tr>
+</table>
+
+### 07 · 咖啡与甜点
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/cafe-original.jpg" width="360" alt="咖啡与甜点俯拍原图"></td>
+    <td><img src="assets/cases/cafe-ticket.jpg" width="360" alt="咖啡与甜点票根海报"></td>
+  </tr>
+</table>
+
+### 08 · 沙漠行车
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/desert-original.jpg" width="360" alt="沙漠红色车辆原图"></td>
+    <td><img src="assets/cases/desert-ticket.jpg" width="360" alt="沙漠红色车辆票根海报"></td>
+  </tr>
+</table>
+
+### 09 · 水岸摄影
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/waterfront-original.jpg" width="360" alt="水岸摄影人物原图"></td>
+    <td><img src="assets/cases/waterfront-ticket.jpg" width="360" alt="水岸摄影人物票根海报"></td>
+  </tr>
+</table>
+
+### 10 · 湖边远眺
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/lakeside-original.jpg" width="360" alt="湖边人物远眺原图"></td>
+    <td><img src="assets/cases/lakeside-ticket.jpg" width="360" alt="湖边人物远眺票根海报"></td>
+  </tr>
+</table>
+
+### 11 · 黄色住宅
+
+<table>
+  <tr><th>原图</th><th>生成的票根海报</th></tr>
+  <tr>
+    <td><img src="assets/cases/gold-house-original.jpg" width="360" alt="黄色住宅原图"></td>
+    <td><img src="assets/cases/gold-house-ticket.jpg" width="360" alt="黄色住宅票根海报"></td>
+  </tr>
+</table>
 
 ## 能做什么
 
@@ -211,120 +317,6 @@ Plugin 不会自动获得本地私人照片；仍需由用户明确选择或授�
 bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ```
 
-## 参考案例
-
-下面展示本次提供的原始照片和对应票根成品。文档页面会按合适宽度显示预览，实际工作流输出仍为 `1170 × 1560` PNG。
-
-### 01 · 咖啡吧台
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/coffee-original.jpg" width="360" alt="咖啡吧台原图"></td>
-    <td><img src="assets/cases/coffee-ticket.jpg" width="360" alt="咖啡吧台票根海报"></td>
-  </tr>
-</table>
-
-### 02 · 考拉合影
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/koala-original.jpg" width="360" alt="考拉合影原图"></td>
-    <td><img src="assets/cases/koala-ticket.png" width="360" alt="考拉合影票根海报"></td>
-  </tr>
-</table>
-
-### 03 · 历史建筑
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/heritage-original.jpg" width="360" alt="历史建筑人物原图"></td>
-    <td><img src="assets/cases/heritage-ticket.jpg" width="360" alt="历史建筑人物票根海报"></td>
-  </tr>
-</table>
-
-### 04 · 露天剧场
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/theater-original.jpg" width="360" alt="露天剧场原图"></td>
-    <td><img src="assets/cases/theater-ticket.jpg" width="360" alt="露天剧场票根海报"></td>
-  </tr>
-</table>
-
-### 05 · 精品店陈列
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/boutique-original.jpg" width="360" alt="精品店陈列原图"></td>
-    <td><img src="assets/cases/boutique-ticket.jpg" width="360" alt="精品店陈列票根海报"></td>
-  </tr>
-</table>
-
-### 06 · 老城街道
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/old-town-original.jpg" width="360" alt="彩色老城街道原图"></td>
-    <td><img src="assets/cases/old-town-ticket.jpg" width="360" alt="彩色老城街道票根海报"></td>
-  </tr>
-</table>
-
-### 07 · 咖啡与甜点
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/cafe-original.jpg" width="360" alt="咖啡与甜点俯拍原图"></td>
-    <td><img src="assets/cases/cafe-ticket.jpg" width="360" alt="咖啡与甜点票根海报"></td>
-  </tr>
-</table>
-
-### 08 · 沙漠行车
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/desert-original.jpg" width="360" alt="沙漠红色车辆原图"></td>
-    <td><img src="assets/cases/desert-ticket.jpg" width="360" alt="沙漠红色车辆票根海报"></td>
-  </tr>
-</table>
-
-### 09 · 水岸摄影
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/waterfront-original.jpg" width="360" alt="水岸摄影人物原图"></td>
-    <td><img src="assets/cases/waterfront-ticket.jpg" width="360" alt="水岸摄影人物票根海报"></td>
-  </tr>
-</table>
-
-### 10 · 湖边远眺
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/lakeside-original.jpg" width="360" alt="湖边人物远眺原图"></td>
-    <td><img src="assets/cases/lakeside-ticket.jpg" width="360" alt="湖边人物远眺票根海报"></td>
-  </tr>
-</table>
-
-### 11 · 黄色住宅
-
-<table>
-  <tr><th>原图</th><th>生成的票根海报</th></tr>
-  <tr>
-    <td><img src="assets/cases/gold-house-original.jpg" width="360" alt="黄色住宅原图"></td>
-    <td><img src="assets/cases/gold-house-ticket.jpg" width="360" alt="黄色住宅票根海报"></td>
-  </tr>
-</table>
-
 ## 仓库结构
 
 ```text
@@ -343,3 +335,11 @@ bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ## 内容边界
 
 画面无法证明具体城市时，Skill 不会猜测地点。制作过程中也不会新增人物、动物、商品、车辆、建筑、标识或其他带有身份信息的细节。确实需要扩展背景时，只处理没有语义的环境区域，并在交付说明中标出。
+
+## 2026-08-15 更新
+
+- 新增图集锁定的 12 种可配置背景风格，可使用序号、中文名或 `style_id` 选择。
+- 未指定风格时，默认改为照片主题色驱动的“近似纯色 + 极轻微单色质感”背景；纹理严格限制在基色约 `±3`，不自动加入渐变、暗角、窗影、树影或聚光。
+- 批量任务默认由每张照片独立提取主题色；只有明确要求“统一色系”时才共享同一颜色。
+- 新增 [GitHub Pages 12 风格预览站](https://cxcxy.github.io/dy-travel-ticket-poster/)，支持材质筛选、放大查看和复制调用语句。
+- 新增 [scripts/build_pages_gallery.py](scripts/build_pages_gallery.py)，可从锁定注册表和原始图集重新生成网页数据与轻量 WebP 预览，生成前会校验 12 张参考图的 SHA-256。
