@@ -2,7 +2,7 @@
 
 English | [简体中文](README.md) | [Live 12-style preview](https://cxcxy.github.io/dy-travel-ticket-poster/)
 
-Turn one photo or a group of photos into travel-ticket posters. Upload your images, tell the Skill which style you want, and it will handle the layout for you.
+Turn one photo or a group of photos into travel-ticket posters. Upload your images and the default style will handle the rest. Choose another style only when you want a different look.
 
 ## Reference cases
 
@@ -53,9 +53,17 @@ The simplest way to install it is to send this repository link to Codex:
 Please install this Skill: https://github.com/cxcxy/dy-travel-ticket-poster
 ```
 
-### 3. Choose a style
+### 3. Start with the default, then change the style if you want
 
-Open the [12-style preview](https://cxcxy.github.io/dy-travel-ticket-poster/). Then tell the Skill the number or the Chinese name you like.
+The simplest option is to make the poster without choosing a style:
+
+```text
+Use the default style.
+```
+
+The default style uses a light background that follows the colors in your photo.
+
+Only if you want a different look, open the [12-style preview](https://cxcxy.github.io/dy-travel-ticket-poster/) and tell the Skill the number or Chinese name you like.
 
 For example:
 
@@ -69,15 +77,15 @@ Or:
 Use “象牙洞石斜光”.
 ```
 
-You can also say:
-
-```text
-Use the default style.
-```
-
 ### 4. Process several photos
 
-Send several images together and say:
+Send several images together without choosing a style to use the default:
+
+```text
+Turn this group of photos into separate ticket posters.
+```
+
+To use another style, add it to the request:
 
 ```text
 Turn this group of photos into separate ticket posters, all using style 10.
@@ -97,7 +105,7 @@ Change the background to style 2 and keep everything else the same.
 Change the title to WATERFRONT and the date to 2026 - 08.
 ```
 
-## The 12 styles
+## Choose one of the 12 styles only when you want a different look
 
 | No. | Chinese name | Overall feeling |
 | --- | --- | --- |
@@ -125,6 +133,10 @@ Change the title to WATERFRONT and the date to 2026 - 08.
 ## Ready-to-copy examples
 
 ```text
+Use $dy-travel-ticket-poster to turn this image into a ticket poster.
+```
+
+```text
 Use $dy-travel-ticket-poster to turn this image into a ticket poster with style 5.
 ```
 
@@ -141,7 +153,7 @@ Use $dy-travel-ticket-poster and recommend 3 styles that fit this photo before m
 You only need to provide:
 
 1. The photo or photos
-2. A style number, a style name, or “default”
+2. If you want another style, its number or name; otherwise the default is used
 3. Any title, date, or shared color you want
 
 For example:
