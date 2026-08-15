@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eee7dc">
+    <meta
+      name="description"
+      content="DY 旅行票根海报 Skill：默认轻质感纯色背景与 12 种可配置背景风格在线预览。"
+    >
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23171714'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Arial' font-weight='800' font-size='26' fill='white'%3EDY%3C/text%3E%3C/svg%3E">
+    <title>DY 旅行票根 · 12 风格预览</title>
+    <link rel="stylesheet" href="styles.css?v=20260815-taste4">
+  </head>
+  <body>
+    <a class="skip-link" href="#default">跳到默认模式</a>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="返回顶部">
+        <span class="brand-mark" aria-hidden="true">DY</span>
+        <span>
+          <strong>旅行票根海报</strong>
+          <small>12 STYLE GALLERY</small>
+        </span>
+      </a>
+      <nav aria-label="主导航">
+        <a href="#default">默认模式</a>
+        <a href="#gallery">12 种风格</a>
+        <a href="#update">本次更新</a>
+        <a href="https://github.com/cxcxy/dy-travel-ticket-poster#readme">使用文档</a>
+        <a href="https://github.com/cxcxy/dy-travel-ticket-poster">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero shell" id="default">
+        <div class="hero-copy">
+          <p class="eyebrow">DY TRAVEL TICKET POSTER</p>
+          <h1>不选风格，也有干净的默认答案。</h1>
+          <p class="hero-intro">
+            默认按照片主题色生成轻质感背景；选定风格后，再调用对应材质、光线和阴影。
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#gallery">查看 12 种效果</a>
+            <button class="button button-secondary" id="copy-default" type="button">
+              复制默认调用语句
+            </button>
+          </div>
+          <dl class="hero-stats" aria-label="核心规格">
+            <div><dt>12</dt><dd>锁定风格</dd></div>
+            <div><dt>3:4</dt><dd>标准画布</dd></div>
+            <div><dt>STRICT</dt><dd>主体保护</dd></div>
+          </dl>
+        </div>
+        <figure
+          class="hero-preview hero-carousel"
+          id="hero-carousel"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="票根成品轮播，共 15 张"
+          tabindex="0"
+        >
+          <div class="carousel-viewport">
+            <div class="carousel-track" id="carousel-track"></div>
+            <div class="carousel-controls" aria-label="轮播控制">
+              <button id="carousel-prev" type="button" aria-label="上一张素材">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <button
+                id="carousel-toggle"
+                type="button"
+                aria-label="暂停自动播放"
+                aria-pressed="false"
+              >
+                <svg class="carousel-icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
+                <svg class="carousel-icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg>
+              </button>
+              <span id="carousel-counter" aria-live="polite">01 / 15</span>
+              <button id="carousel-next" type="button" aria-label="下一张素材">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+          </div>
+          <figcaption class="carousel-caption">
+            <span id="carousel-kicker">TICKET 01 · 01 / 15</span>
+            <strong id="carousel-title">秋日小舟</strong>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="gallery-section shell" id="gallery" aria-labelledby="gallery-title">
+        <div class="gallery-heading">
+          <div class="section-heading gallery-title-group">
+            <h2 id="gallery-title">12 种背景风格，逐一看清。</h2>
+            <p>点击任意效果查看完整规格；图片始终按原始 <strong>3:4</strong> 比例展示，不拉伸、不裁边。</p>
+          </div>
+          <div class="gallery-tools">
+            <div class="filter-bar" role="group" aria-label="按材质筛选">
+              <button class="filter active" type="button" data-filter="all" aria-pressed="true">全部</button>
+              <button class="filter" type="button" data-filter="paper" aria-pressed="false">纸张</button>
+              <button class="filter" type="button" data-filter="textile" aria-pressed="false">织物</button>
+              <button class="filter" type="button" data-filter="mineral" aria-pressed="false">矿物墙面</button>
+              <button class="filter" type="button" data-filter="light" aria-pressed="false">光影</button>
+            </div>
+            <p class="gallery-status" id="gallery-status" aria-live="polite">正在载入风格…</p>
+          </div>
+        </div>
+
+        <div class="style-grid" id="style-grid"></div>
+        <noscript>此页面需要启用 JavaScript 才能载入 12 种风格卡片。</noscript>
+      </section>
+
+      <section class="update shell" id="update">
+        <div class="section-heading">
+          <time class="update-date" datetime="2026-08-15">2026.08.15</time>
+          <h2>默认更干净，选择更明确。</h2>
+        </div>
+        <div class="update-grid">
+          <article>
+            <h3>默认轻质感纯色</h3>
+            <p>未指定风格时逐图取主题色，背景维持近似纯色，微纹理严格约束在基色 ±3。</p>
+          </article>
+          <article>
+            <h3>12 风格显式启用</h3>
+            <p>亚麻、艺术纸、灰泥、洞石与电影墙等效果，只在明确选择序号或名称后启用。</p>
+          </article>
+          <article>
+            <h3>每张照片独立配色</h3>
+            <p>批量任务默认逐张适配主题色；只有明确要求“统一色系”时才共享同一颜色。</p>
+          </article>
+          <article>
+            <h3>原图像素回填</h3>
+            <p>照片区由原始文件等比例裁切与高质量缩放，不让生成模型重画、压扁或改动主体。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="usage shell" aria-labelledby="usage-title">
+        <div>
+          <h2 id="usage-title">丢一张图，选一种风格。</h2>
+        </div>
+        <div class="usage-command">
+          <code>把这张图片做成票根，使用第10种，其他按默认。</code>
+          <button type="button" data-copy="把这张图片做成票根，使用第10种，其他按默认。">复制</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer shell">
+      <p>DY Travel Ticket Poster / 原图保真 / 简体中文默认</p>
+      <p><a href="https://github.com/cxcxy/dy-travel-ticket-poster#readme">README</a> · <a href="https://github.com/cxcxy/dy-travel-ticket-poster/blob/main/SKILL.md">SKILL.md</a></p>
+    </footer>
+
+    <dialog class="style-dialog" id="style-dialog">
+      <button class="dialog-close" type="button" aria-label="关闭预览">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="dialog-layout">
+        <div class="dialog-media">
+          <img id="dialog-image" alt="">
+          <div class="dialog-nav" aria-label="浏览其他风格">
+            <button id="dialog-prev" type="button" aria-label="上一种风格">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+              <span>上一种</span>
+            </button>
+            <button id="dialog-next" type="button" aria-label="下一种风格">
+              <span>下一种</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="dialog-copy">
+          <p class="eyebrow" id="dialog-order"></p>
+          <h2 id="dialog-name"></h2>
+          <code id="dialog-id"></code>
+          <p id="dialog-description"></p>
+          <dl class="dialog-specs">
+            <div><dt>材质</dt><dd id="dialog-material"></dd></div>
+            <div><dt>光线</dt><dd id="dialog-lighting"></dd></div>
+            <div><dt>阴影</dt><dd id="dialog-shadow"></dd></div>
+            <div><dt>适用</dt><dd id="dialog-best-for"></dd></div>
+          </dl>
+          <button class="button button-primary" id="dialog-copy" type="button">复制中文名</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="style-data.js?v=20260815-taste4" defer></script>
+    <script src="carousel-data.js?v=20260815-taste4" defer></script>
+    <script src="app.js?v=20260815-copy-name" defer></script>
+  </body>
+</html>

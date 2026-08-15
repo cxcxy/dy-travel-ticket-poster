@@ -1,10 +1,18 @@
 # DY 旅行票根海报
 
-[English](README.en.md) | 简体中文
+[English](README.en.md) | 简体中文 | [在线预览 12 种风格](https://cxcxy.github.io/dy-travel-ticket-poster/)
 
 把单张照片或一批照片做成风格统一的旅行票根海报。Skill 会保留原图中可辨认的人物、动物、建筑、车辆、产品和动作，再根据照片颜色制作居中的票根、撕票信息联、场景标题、日期、编号和装饰性条形码。
 
 每张照片最终交付一张 `1170 × 1560`、`3:4`、无透明通道的 PNG。成品中不会保留手机状态栏、通知、播放器控件和水印。
+
+## 2026-08-15 更新
+
+- 新增图集锁定的 12 种可配置背景风格，可使用序号、中文名或 `style_id` 选择。
+- 未指定风格时，默认改为照片主题色驱动的“近似纯色 + 极轻微单色质感”背景；纹理严格限制在基色约 `±3`，不自动加入渐变、暗角、窗影、树影或聚光。
+- 批量任务默认由每张照片独立提取主题色；只有明确要求“统一色系”时才共享同一颜色。
+- 新增 [GitHub Pages 12 风格预览站](https://cxcxy.github.io/dy-travel-ticket-poster/)，支持材质筛选、放大查看和复制调用语句。
+- 新增 [scripts/build_pages_gallery.py](scripts/build_pages_gallery.py)，可从锁定注册表和原始图集重新生成网页数据与轻量 WebP 预览，生成前会校验 12 张参考图的 SHA-256。
 
 ## 能做什么
 
@@ -32,14 +40,14 @@
 - 圆角、竖向撕票线、半圆缺口、轻阴影和粗体窄字保持一致
 - 照片与信息联之间始终只有一条方角矩形虚线；虚线首段从票根顶部开始，不使用圆角
 - 使用接触阴影与环境阴影两层结构，让整张票根稳定落在背景上
-- 未指定风格时，画布使用由照片提取的低饱和纯色背景，默认明度 `58–62%`、饱和度 `6–20%`
+- 未指定风格时，画布默认使用照片主题色驱动的“近似纯色 + 极轻微单色质感”背景，明度 `58–62%`、饱和度 `6–20%`；不出现明显光斑、渐变或图案
 - 配色随照片变化，信息层级和版式保持不变；批量任务不套统一默认背景色
 
 完整的版式参数见 [references/style-spec.md](references/style-spec.md)。
 
 ## 图集锁定的 12 种背景风格
 
-显式指定风格后，Skill 会从 [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json) 解析完整配置，而不是只替换一个米色。12 种风格由用户提供的 12 张图集逐张提炼，并用原文件名、SHA-256、实测背景中值色与视觉签名锁定来源；只迁移背景材质、光型、明暗衰减和空间关系，不复制参考照片、人物、文字或编号。材质、光线和阴影彼此可组合；默认使用 `balanced` 强度和 `strict` 主体保护。未指定风格时仍保留原来的逐图纯色逻辑。通用 20 风格基线继续保存在 [references/background-styles.json](references/background-styles.json)，可通过 `--registry` 显式调用。
+显式指定风格后，Skill 会从 [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json) 解析完整配置。12 种风格由用户提供的 12 张图集逐张提炼，并用原文件名、SHA-256、实测背景中值色与视觉签名锁定来源；只迁移背景材质、光型、明暗衰减和空间关系，不复制参考照片、人物、文字或编号。材质、光线和阴影彼此可组合；默认使用 `balanced` 强度和 `strict` 主体保护。颜色默认不锁死：未指定背景色时，每张照片从最终裁切提取自己的主题色；只有用户明确要求时才统一整组色系。未指定风格时使用逐图轻质感纯色背景，不调用生图模型。通用 20 风格基线继续保存在 [references/background-styles.json](references/background-styles.json)，可通过 `--registry` 显式调用。
 
 | `style_id` | 中文名 | 主要材质 / 氛围 |
 | --- | --- | --- |
@@ -56,10 +64,36 @@
 | `cotton_paper_top_glow` | 棉纸顶光 | 天然棉纸、对称顶光 |
 | `caramel_mineral_spotlight` | 焦糖矿物聚光 | 深焦糖矿物墙、左上聚光 |
 
-最常见的使用方式就是：上传一张或一组照片，再选择上面的一种风格。可以说“第10种”、中文名或 `style_id`。单图输出一张票根；多图默认锁定同一风格、背景底图、强度、光线和阴影，逐张输出独立票根，不拼图、不随机换风格。
+### 在线查看与维护预览网站
+
+完整视觉卡片位于 [GitHub Pages 12 风格预览站](https://cxcxy.github.io/dy-travel-ticket-poster/)。网站源码保存在 [`docs/`](docs/)，部署工作流为 [`.github/workflows/pages.yml`](.github/workflows/pages.yml)。合并到 `main` 后，工作流会把 `docs/` 作为静态站点发布；仓库首次启用时，需要在 GitHub **Settings → Pages → Build and deployment** 中选择 **GitHub Actions**。
+
+本地预览：
+
+```bash
+python3 -m http.server 8000 --directory docs
+```
+
+浏览器打开 `http://127.0.0.1:8000/`。参考图集发生变更时，先运行：
+
+```bash
+python3 scripts/build_pages_gallery.py \
+  --source-dir "/absolute/path/to/gallery" \
+  --default-preview "/absolute/path/to/default-ticket.png"
+```
+
+脚本只在 12 张来源文件全部通过注册表哈希校验后更新网页资产、`docs/style-data.json` 和可供本地直接打开的 `docs/style-data.js`。
+
+最常见的使用方式就是：上传一张或一组照片，再选择上面的一种风格。可以说“第10种”、中文名或 `style_id`。单图输出一张票根；多图默认锁定同一风格、强度、光线和阴影，但背景颜色按每张照片主题色独立适配，逐张输出独立票根，不拼图、不随机换风格。只有明确说“统一色系”时才共用同一个背景色系。
 
 ```text
 把这一组图片分别做成票根，全部使用第10种，其他按默认。
+```
+
+上面的“默认”表示每张图独立取主题色。需要统一颜色时可以说：
+
+```text
+把这一组图片分别做成票根，全部使用第10种，并统一为灰蓝色系。
 ```
 
 直接调用：
@@ -79,7 +113,9 @@
 ```bash
 python3 scripts/background_style_system.py validate
 python3 scripts/background_style_system.py recommend --context "高级温暖的旅行票根" --count 10
-python3 scripts/background_style_system.py prompt --style-id "第10种" --strength balanced
+python3 scripts/background_style_system.py prompt --style-id "第10种" --strength balanced --palette-mode adaptive --theme-color '#8FA6AD'
+python3 scripts/adapt_background_plate.py --plate material.png --source-photo photo.jpg --palette-mode adaptive --output background.png
+python3 scripts/build_subtle_texture_background.py --source-photo photo.jpg --palette-mode adaptive --output background.png
 python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/gallery"
 ```
 
@@ -151,7 +187,7 @@ Plugin 不会自动获得本地私人照片；仍需由用户明确选择或授�
 使用 $dy-travel-ticket-poster 处理这张照片，标题用 WATERFRONT，日期用 2026 - 08。
 ```
 
-工作流会逐张检查照片，选择安全的裁切区域，整理票根信息，调用当前环境的 `imagegen` Skill 完成栅格编辑。图集风格模式会先生成无主体的背景底图，再通过 [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 回填原始照片像素和票根，最后目视检查并输出标准尺寸成品。
+工作流会逐张检查照片，选择安全的裁切区域并整理票根信息。未指定风格时，[scripts/build_subtle_texture_background.py](scripts/build_subtle_texture_background.py) 直接生成主题色轻质感纯色背景，不调用生图模型；显式图集风格才调用 `imagegen` 生成无主体材质母版，再由 [scripts/adapt_background_plate.py](scripts/adapt_background_plate.py) 适配主题色。最后通过 [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 回填原始照片像素和票根，目视检查并输出标准尺寸成品。
 
 ## 信息生成规则
 
@@ -300,6 +336,8 @@ bash scripts/normalize_output.sh generated-image.png final-ticket.png
 ├── references/prompt-template.md
 ├── references/style-spec.md
 ├── scripts/background_style_system.py
+├── scripts/adapt_background_plate.py
+├── scripts/build_subtle_texture_background.py
 ├── scripts/build_before_after_showcase.py
 ├── scripts/build_ticket_batch.py
 ├── scripts/normalize_output.sh

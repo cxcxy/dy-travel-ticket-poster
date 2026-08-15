@@ -1,6 +1,6 @@
 ---
 name: dy-travel-ticket-poster
-description: Convert user-supplied photos into reference-locked 3:4 travel, coffee, or movie ticket posters, and apply a configurable 12-style gallery-derived background system to existing tickets, cards, posters, photos, or products. Supports reference-anchored material and light identities, style strength, lighting and shadow overrides, strict subject preservation, diverse recommendations, photo-derived solid-color fallback, original-pixel photo panels, neutral titles, dates, serials, and barcodes. Use when the user asks to "套旅行票根模板", "做成票根海报", "改成这种旅行票格式", match one of the 12 supplied gallery backgrounds, change only a card/poster background, requests materials such as 洞石/和纸/亚麻/灰泥, asks for multiple differentiated background options, references style_id, or continues a prior ticket-poster batch.
+description: Convert user-supplied photos into reference-locked 3:4 travel, coffee, or movie ticket posters, and apply a configurable 12-style gallery-derived background system to existing tickets, cards, posters, photos, or products. Defaults to a photo-adaptive near-solid background with very subtle tactile texture, supports optional batch-wide unified color families, explicit reference-anchored material and light styles, strict subject preservation, original-pixel photo panels, neutral titles, dates, serials, and barcodes. Use when the user asks to "套旅行票根模板", "做成票根海报", "改成这种旅行票格式", match one of the 12 supplied gallery backgrounds, change only a card/poster background, requests materials such as 洞石/和纸/亚麻/灰泥, asks for multiple differentiated background options, references style_id, or continues a prior ticket-poster batch.
 ---
 
 # DY 旅行票根海报
@@ -19,7 +19,7 @@ description: Convert user-supplied photos into reference-locked 3:4 travel, coff
 1. 票根构建模式完整读取 [references/style-spec.md](references/style-spec.md)。
 2. 实际生成或编辑图片时完整读取 [references/prompt-template.md](references/prompt-template.md)。
 3. 用户指定背景风格、描述背景氛围或要求多套方案时，使用 [scripts/background_style_system.py](scripts/background_style_system.py) 读取并解析默认的 [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json)；不要手写或猜测注册表字段。通用 20 风格基线保留在 [references/background-styles.json](references/background-styles.json)，只有用户明确要求旧风格时才用 `--registry` 切换。
-4. 加载并遵循当前环境的 `imagegen` Skill。它负责栅格图片生成与编辑；本 Skill 负责结构、主体保护、确定性合成和验收。
+4. 只有显式风格需要生成材质母版，或任务确实需要模型编辑时，才加载并遵循当前环境的 `imagegen` Skill。默认轻质感纯色背景使用本地确定性脚本，不上传照片也不调用生图模型。
 
 ## 图集锁定的 12 风格系统
 
@@ -29,6 +29,9 @@ description: Convert user-supplied photos into reference-locked 3:4 travel, coff
 background:
   style_id: ivory_travertine_diagonal
   strength: balanced
+palette:
+  mode: adaptive
+  theme_color: null
 lighting:
   preset: stone_diagonal
 shadow:
@@ -42,7 +45,9 @@ temperature_shift: 0
 - 光线既保留 6 个通用预设，也提供与图集对应的侧光、柔窗影、中心柔光、电影衰减、树影、纸张柔光、纵向柔影、建筑斜光、石灰墙漫射、洞石斜光、顶光和左上聚光预设。
 - 阴影支持 `flat`、`subtle_float`、`premium_float`、`architectural`；风格模式默认采用该风格推荐值。
 - `subject_preservation` 默认并必须优先使用 `strict`。只有用户明确要求主体与背景融合时才允许 `balanced` 或 `creative`。
-- 无 `style_id` 且用户没有提出背景风格要求时，沿用逐图取色的低饱和纯色背景，不自动套米色材质。
+- `palette.mode` 默认是 `adaptive`：用户没有指定背景色时，从每张照片最终票根裁切区域提取独立主题色，风格只锁定材质、纹理、光型和阴影，不强制注册表色相。
+- 只有用户明确要求“统一色系”“全部同色”或给出统一色值时，才使用 `palette.mode=unified`。可直接采用用户色值，也可从整组照片共同提取一套代表色；同一风格本身不等于统一色系。
+- 无 `style_id` 且用户没有提出背景风格要求时，默认使用逐图取色的低饱和“近似纯色 + 极轻微单色纹理”背景，不自动加入明显树影、窗影、聚光、渐变或大块斑驳。
 
 12 个默认风格按用户图集顺序固定为：
 
@@ -74,11 +79,12 @@ python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/g
 把“附件 + 一个风格选择”作为最简调用契约。风格选择可以是序号、中文名或 `style_id`，例如 `第10种`、`象牙洞石斜光`、`ivory_travertine_diagonal`，三者必须解析到同一个配置。
 
 - 单张图片：输出一张独立票根 PNG。
-- 一组图片：默认把同一风格、强度、光线、阴影和背景底图锁定到整组，逐张生成独立票根 PNG；不要把多张照片拼在一张海报里，也不要为每张随机换风格。
-- 整组中只允许照片裁切、标题、日期、编号、装饰码和信息联配色按各自素材调整；票根几何与所选背景身份保持不变。
+- 一组图片：默认把同一风格、强度、光线和阴影锁定到整组，但背景色按每张照片的主题色独立适配，逐张生成独立票根 PNG；不要把多张照片拼在一张海报里，也不要为每张随机换风格。
+- 整组中允许背景主题色、照片裁切、标题、日期、编号、装饰码和信息联配色按各自素材调整；票根几何、材质、纹理、光型、阴影与所选风格身份保持不变。
+- 用户明确要求统一色系时，整组改用同一个主题色和同一张适配后的背景底图；统一色系不是默认值。
 - 用户明确为不同图片指定不同风格时才逐张覆盖；没有逐张覆盖时，第一处风格选择作用于整组。
 - 用户只说“用 12 风格做票根”但没有选择具体一项时，列出序号与中文名等待选择，或按用户要求先推荐 3 项；不要静默随机选择。
-- 用户只说“做票根”且没有提到 12 风格时，继续使用逐图低饱和纯色兼容模式。
+- 用户只说“做票根”且没有提到 12 风格时，使用逐图主题色的轻质感纯色默认模式。
 
 推荐的自然语言调用：
 
@@ -87,7 +93,9 @@ python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/g
 ```
 
 ```text
-把这一组图片分别做成票根，全部使用焦糖树影墙，强度 balanced。
+把这一组图片分别做成票根，全部使用焦糖树影墙，颜色按各自图片主题色，强度 balanced。
+
+把这一组图片分别做成票根，全部使用焦糖树影墙，并统一为灰蓝色系。
 ```
 
 ### 解析与推荐
@@ -116,6 +124,8 @@ python3 scripts/background_style_system.py recommend \
 python3 scripts/background_style_system.py prompt \
   --style-id ivory_travertine_diagonal \
   --strength balanced \
+  --palette-mode adaptive \
+  --theme-color '#8FA6AD' \
   --lighting stone_diagonal \
   --shadow architectural \
   --preservation strict
@@ -127,8 +137,8 @@ python3 scripts/background_style_system.py prompt \
 
 1. 用 `view_image` 检查所有输入；读取像素尺寸和可用的本地 EXIF/文件日期。不要把 GPS 或私人元数据上传第三方。
 2. 在 `strict` 模式下，禁止修改人物、人脸、姿势、动物、产品、建筑、车辆、文字、日期、条形码、票根比例和现有版式。
-3. 背景优化只作用于材质、纹理、光线、阴影、纵深、色彩和氛围。保持低饱和、低对比、克制纹理；禁止霓虹、重渐变、强光晕、过强 HDR、塑料感、过量颗粒和喧闹装饰。
-4. 对票根构建模式，优先生成一张**无主体、无票根、无文字**的 `1170 × 1560` 背景底图，再确定性合成票根。不要让生成模型重画最终照片区。
+3. 背景优化只作用于材质、纹理、光线、阴影、纵深、色彩和氛围。默认模式必须保持低饱和、低对比和近似纯色，纹理仅提供轻微触感；禁止霓虹、重渐变、强光晕、过强 HDR、塑料感、过量颗粒和喧闹装饰。
+4. 对票根构建模式，无显式风格时直接使用 [scripts/build_subtle_texture_background.py](scripts/build_subtle_texture_background.py) 确定性生成 `1170 × 1560` 轻质感纯色背景，不调用生图模型。显式选择 12 风格时，才先生成一张**无主体、无票根、无文字**的材质母版，再用 [scripts/adapt_background_plate.py](scripts/adapt_background_plate.py) 适配主题色。不要让生成模型重画最终照片区。
 5. 对背景换装模式，若存在透明主体、遮罩或可精确分离的卡片，优先确定性合成；否则使用图片编辑并重复严格主体保护约束，编辑后逐字、逐物核对。
 6. 主体与背景必须有足够明度差。纹理、窗影、斑驳和聚光不得穿过主体正文、人脸、条形码或重要边缘。
 
@@ -137,13 +147,14 @@ python3 scripts/background_style_system.py prompt \
 1. 锁定票根主体 `x=55, y=501, width=1057, height=507`；左外边距 `55px`、右外边距 `58px`。照片区 `774 × 507px`，信息联 `283 × 507px`。
 2. 为照片确定裁切焦点，先保住人脸、动作、动物、车辆、产品或建筑主体，再保留环境证据。禁止拉伸和 JPEG 中间转码。
 3. 生成信息：优先采用用户指定标题、地点和日期；无法可靠判断地点时使用 `COFFEE`、`KOALA`、`OLD TOWN`、`DESERT` 等中性场景词。日期依次采用用户指定、`DateTimeOriginal`、文件日期、当前年月，格式 `YYYY - MM`。装饰编号使用 `NO.` 加 5 位数字和 8 位大写字母数字。
-4. 无背景风格要求时，为每张图提取独立的画布色、信息联色和文字色；画布为 HSL 饱和度 `6–20%`、明度 `58–62%` 的单一纯色。显式风格模式只替换外部画布，信息联仍优先与当前照片协调。
-5. 按 [references/prompt-template.md](references/prompt-template.md) 生成票根预览和风格背景底图。批量任务逐张处理，不把多张输入拼为一张交付图。
+4. 无背景风格要求时，为每张图提取独立的画布色、信息联色和文字色；画布使用 HSL 饱和度 `6–20%`、明度 `58–62%` 的单一色相，并只叠加亮度振幅约 `±3` 的确定性单色微纹理。不得出现可识别图案、方向性光斑、渐变、暗角或大面积明暗变化。显式风格模式默认同样逐图取主题色，只把所选风格的材质、纹理、光型和阴影迁移到外部画布；信息联仍优先与当前照片协调。
+5. 无显式风格时运行 `build_subtle_texture_background.py --palette-mode adaptive --source-photo <photo> --photo-center-y <crop>`。显式风格时按 [references/prompt-template.md](references/prompt-template.md) 生成材质母版，再运行 `adapt_background_plate.py`；只有统一色系模式才使用 `--palette-mode unified` 和共同色值或整组素材。批量任务逐张处理，不把多张输入拼为一张交付图。
 6. 使用 [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) 重建版式，并始终传入 `--photo-source`：
-   - 纯色背景用 `--background-color '#RRGGBB'`。
+   - 新默认轻质感纯色背景用 `--background-image <1170x1560-subtle-texture.png>`。
+   - 旧版完全纯色兼容输入仍可用 `--background-color '#RRGGBB'`，但不再作为新任务默认。
    - 风格背景用 `--background-image <1170x1560-background.png>` 和对应 `--shadow-preset`。
    - 脚本会回填原图像素、清除旧分隔痕迹、只重绘一条方角虚线并重建双层阴影。
-7. 只有外部纯色背景错误时，使用 [scripts/recolor_existing_poster.py](scripts/recolor_existing_poster.py)。它不用于生成材质背景。
+7. 只有旧版完全纯色背景错误时，使用 [scripts/recolor_existing_poster.py](scripts/recolor_existing_poster.py)。新默认背景应重新运行 `build_subtle_texture_background.py`，不要用完全纯色覆盖掉轻微质感。
 8. 使用 [scripts/normalize_output.sh](scripts/normalize_output.sh) 安全归一化最终尺寸；输出新文件，不覆盖唯一源图或已确认成品。
 9. 用 `view_image` 检查最终 PNG，用 `sips` 或 `magick identify` 核对尺寸，并运行 [scripts/validate_ticket_output.py](scripts/validate_ticket_output.py) 验证源照片像素回归、唯一虚线和顶部方角首段。
 
@@ -152,7 +163,8 @@ python3 scripts/background_style_system.py prompt \
 - 照片面板按约 `1.53:1` 直接从原图使用 Lanczos 等比例裁切缩放，不拉伸、不重绘、不经过有损中间文件。
 - 普通裁切会切掉关键主体时，只允许对无语义背景做最小扩展，并在交付说明标出；不得生成新人物、动物、商品、车辆、建筑或标识。
 - 票根批量固定画布、几何、照片/信息联比例、外轮廓圆角、唯一方角撕票线、缺口和文字层级。
-- 未指定风格时，每张照片独立取色；整组选定同一风格时，默认复用同一张背景底图并锁定强度、光线、阴影和风格身份，只根据照片调整主体对比与信息联配色。
+- 未指定颜色时，无论是否选定风格，每张照片都独立取主题色；整组选定同一风格时只锁定材质、纹理、强度、光线、阴影和风格身份，不复用同一张最终背景底图。
+- 用户明确要求统一色系时，才锁定一套主题色并复用同一张适配后的背景底图；若用户没有给色值，可从整组最终裁切共同提取代表色。
 - 多风格方案必须优先拉开材质、光线、纹理、温度和纵深差异，而不是随机生成相近米色。
 - 每张单独验收；一张通过不代表整批通过。
 
@@ -162,6 +174,7 @@ python3 scripts/background_style_system.py prompt \
 - **原图被压扁、重绘或有损压缩**：禁止交付生成图中的照片区；用 `normalize_reference_layout.py --photo-source` 回填，并与同参数 `ImageOps.fit` 结果做像素回归。
 - **两条虚线**：清除信息联左缘 `20px` 内旧分隔，只保留一条宽 `7px` 的方角矩形虚线；第一段从票根顶部开始。
 - **材质太明显或抢主体**：先降为 `subtle`，再降低光线或阴影；不要通过模糊主体解决。
+- **默认背景出现明显图案、光斑或渐变**：结果作废，重新运行 `build_subtle_texture_background.py`；默认只允许近似纯色和不可辨识的细微单色纹理。
 - **风格变成廉价 AI 效果**：按注册表 `avoid` 和全局负向词重做；检查渐变、光晕、HDR、颗粒、塑料感和饱和度。
 - **窗影或纹理压住文字/人脸**：只移动或减弱背景光影，不移动主体。
 - **风格 ID 不存在**：运行推荐器给出相近候选，不静默回退到任意米色。
@@ -170,6 +183,6 @@ python3 scripts/background_style_system.py prompt \
 
 ## 完成标准
 
-票根构建模式仅在以下条件全部成立后完成：独立成品为 `1170 × 1560`；左右边距符合锁定值；照片面板可回归原始文件等比例裁切；全高只有一条方角虚线；双层阴影连续自然；文字可读；票根结构完整；背景符合指定 `style_id` 或逐图纯色回退；没有 UI 或水印。
+票根构建模式仅在以下条件全部成立后完成：独立成品为 `1170 × 1560`；左右边距符合锁定值；照片面板可回归原始文件等比例裁切；全高只有一条方角虚线；双层阴影连续自然；文字可读；票根结构完整；未指定颜色时背景可追溯到当前照片主题色，统一色系仅在用户明确要求时启用；无显式风格时背景呈近似纯色且只有极轻微单色质感，显式风格时符合指定 `style_id`；没有 UI 或水印。
 
 背景换装模式仅在主体内容、人物、文字、日期、条形码、比例和版式逐项不变，背景风格、强度、光线与阴影符合解析配置，主体仍为第一视觉层级，输出尺寸与用户要求一致，并已提供绝对路径后完成。

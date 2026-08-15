@@ -21,18 +21,42 @@ from normalize_reference_layout import (  # noqa: E402
     normalize,
 )
 from build_ticket_batch import build_ticket  # noqa: E402
+from adapt_background_plate import adapt_plate, derive_theme_color  # noqa: E402
+from build_subtle_texture_background import build_subtle_background  # noqa: E402
 
 
 class StyledBackgroundCompositeTests(unittest.TestCase):
-    def test_batch_reuses_one_background_plate_but_keeps_distinct_photos(self) -> None:
+    def test_default_background_is_deterministic_near_solid_with_subtle_texture(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            background = root / "background.png"
+            first = root / "first.png"
+            second = root / "second.png"
+            build_subtle_background(first, (108, 141, 156), seed=40817, texture_strength=3)
+            build_subtle_background(second, (108, 141, 156), seed=40817, texture_strength=3)
+
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            with Image.open(first) as background:
+                self.assertEqual(background.mode, "RGB")
+                self.assertEqual(background.size, CANVAS_SIZE)
+                for minimum, maximum in background.getextrema():
+                    self.assertGreater(maximum, minimum)
+                    self.assertLessEqual(maximum - minimum, 8)
+
+    def test_batch_adapts_background_per_photo_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            material = root / "material.png"
+            red_background = root / "red-background.png"
+            green_background = root / "green-background.png"
             red_photo = root / "red.png"
             green_photo = root / "green.png"
-            Image.new("RGB", CANVAS_SIZE, (219, 207, 189)).save(background)
+            Image.new("RGB", CANVAS_SIZE, (209, 158, 103)).save(material)
             Image.new("RGB", (1200, 900), (210, 32, 28)).save(red_photo)
             Image.new("RGB", (1200, 900), (24, 180, 70)).save(green_photo)
+            red_theme, _ = derive_theme_color([red_photo], [0.5], "adaptive")
+            green_theme, _ = derive_theme_color([green_photo], [0.5], "adaptive")
+            adapt_plate(material, red_background, red_theme)
+            adapt_plate(material, green_background, green_theme)
 
             base = {
                 "style_id": "ivory_travertine_diagonal",
@@ -41,27 +65,57 @@ class StyledBackgroundCompositeTests(unittest.TestCase):
                 "number": "NO.12345",
                 "code": "A1B2C3D4",
                 "stub_color": "#543719",
-                "background_image": str(background),
                 "shadow_preset": "architectural",
             }
             first = build_ticket(
-                {**base, "source": str(red_photo), "filename": "red-ticket.png"},
+                {
+                    **base,
+                    "source": str(red_photo),
+                    "filename": "red-ticket.png",
+                    "background_image": str(red_background),
+                },
                 root,
             )
             second = build_ticket(
-                {**base, "source": str(green_photo), "filename": "green-ticket.png"},
+                {
+                    **base,
+                    "source": str(green_photo),
+                    "filename": "green-ticket.png",
+                    "background_image": str(green_background),
+                },
                 root,
             )
             first_image = Image.open(first).convert("RGB")
             second_image = Image.open(second).convert("RGB")
 
-            self.assertEqual(
+            self.assertNotEqual(
                 first_image.crop((0, 0, CANVAS_SIZE[0], 350)).tobytes(),
                 second_image.crop((0, 0, CANVAS_SIZE[0], 350)).tobytes(),
             )
             photo_point = (TICKET_X + PHOTO_W // 2, TICKET_Y + TICKET_H // 2)
             self.assertEqual(first_image.getpixel(photo_point), (210, 32, 28))
             self.assertEqual(second_image.getpixel(photo_point), (24, 180, 70))
+
+    def test_unified_theme_color_produces_one_reusable_background(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            material = root / "material.png"
+            red_photo = root / "red.png"
+            blue_photo = root / "blue.png"
+            first = root / "first.png"
+            second = root / "second.png"
+            Image.new("RGB", CANVAS_SIZE, (209, 158, 103)).save(material)
+            Image.new("RGB", (900, 900), (190, 70, 55)).save(red_photo)
+            Image.new("RGB", (900, 900), (70, 120, 170)).save(blue_photo)
+            unified, extracted = derive_theme_color(
+                [red_photo, blue_photo],
+                [0.5],
+                "unified",
+            )
+            self.assertIn(unified, extracted)
+            adapt_plate(material, first, unified)
+            adapt_plate(material, second, unified)
+            self.assertEqual(first.read_bytes(), second.read_bytes())
 
     def test_legacy_solid_background_still_works(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

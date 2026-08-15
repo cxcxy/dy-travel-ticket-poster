@@ -1,6 +1,6 @@
 # 图片编辑提示词模板
 
-每张照片单独处理。先判断使用默认纯色背景还是图集锁定风格背景；不要把两套背景要求同时写进一条提示词。
+每张照片单独处理。先判断使用默认轻质感纯色背景还是显式图集风格背景；不要把两套背景要求同时写进一条提示词。
 
 ## A. 票根主体预览
 
@@ -38,7 +38,7 @@ Use only Image 1 for the photo panel. Crop intelligently to 774 x 507, about 1.5
 - Keep the source photograph natural.
 
 [TEMPORARY OUTER BACKGROUND]
-- Adaptive solid mode: use [HEX], derived from Image 1 at HSL saturation 6-20% and lightness 58-62%; one flat edge-to-edge color, no texture or gradient.
+- Default subtle-solid mode: use [HEX], derived from Image 1 at HSL saturation 6-20% and lightness 58-62%; one edge-to-edge hue with only imperceptible monochrome microtexture, no gradient or directional light.
 - Gallery style mode: use a quiet flat placeholder only. Do not attempt the final material background in this pass.
 
 [TYPOGRAPHY AND EXACT TEXT]
@@ -54,9 +54,26 @@ Below the code, add one small decorative barcode made of varied vertical bars in
 Clean finished poster only. No mobile status bar, time, battery, Wi-Fi, notifications, player controls, progress bars, watermark, signature, logos, captions, outside frames or extra text.
 ```
 
-## B. 图集锁定背景底图
+## B. 默认轻质感纯色背景
 
-先运行 `scripts/background_style_system.py prompt ...`，从默认的 `gallery-12-background-styles.json` 得到带参考视觉签名的完整 Prompt，再在末尾追加下面的输出约束。此请求只生成背景，不上传私人照片，也不让模型接触主体。参考图只用于提炼材质、光型、明暗衰减与纵深；禁止复制图集里的照片、人物、文字、编号和条形码。
+用户没有指定 `style_id`、材质、光影或背景氛围时，不调用生图模型。直接从最终照片裁切提取主题色，并确定性生成近似纯色背景：
+
+```bash
+python3 scripts/build_subtle_texture_background.py \
+  --source-photo original-photo.png \
+  --photo-center-y 0.5 \
+  --palette-mode adaptive \
+  --texture-strength 3 \
+  --output subtle-solid-background-1170x1560.png
+```
+
+默认纹理亮度振幅约 `±3`，只产生细微触感；第一眼仍必须是纯色。禁止渐变、暗角、树影、窗影、聚光、纸纤维、石材纹路、颗粒团块和可识别图案。用户明确要求统一色系时，使用 `--palette-mode unified --theme-color '#RRGGBB'`，整组复用同一背景。
+
+合成时将结果作为 `--background-image` 传入 `normalize_reference_layout.py`。旧版 `--background-color` 只用于完全纯色兼容输入。
+
+## C. 图集锁定背景底图
+
+先从最终照片裁切在本地提取主题色，再运行 `scripts/background_style_system.py prompt ... --palette-mode adaptive --theme-color '#RRGGBB'`，从默认的 `gallery-12-background-styles.json` 得到带参考视觉签名的完整 Prompt。用户明确要求统一色系时改用 `--palette-mode unified`，整组传入同一个色值。随后在末尾追加下面的输出约束。此请求只生成背景，不上传私人照片，也不让模型接触主体。参考图只用于提炼材质、光型、明暗衰减与纵深；禁止复制图集里的照片、人物、文字、编号和条形码。
 
 ```text
 [OUTPUT PLATE]
@@ -71,6 +88,17 @@ Do not create a fake card-shaped light patch, outline or second rectangle behind
 生成后用 `view_image` 检查底图：必须为空背景，尺寸精确，纹理和光影不在票根正文区域形成高对比干扰。随后运行：
 
 ```bash
+python3 scripts/adapt_background_plate.py \
+  --plate generated-material-plate-1170x1560.png \
+  --source-photo original-photo.png \
+  --photo-center-y 0.5 \
+  --palette-mode adaptive \
+  --output adaptive-background-1170x1560.png
+```
+
+默认每张照片分别运行一次，得到各自主题色背景。只有用户明确要求统一色系时，才用 `--palette-mode unified --theme-color '#RRGGBB'` 生成一张整组复用的背景。
+
+```bash
 python3 scripts/normalize_reference_layout.py \
   --input generated-ticket-preview.png \
   --output final-ticket.png \
@@ -78,11 +106,11 @@ python3 scripts/normalize_reference_layout.py \
   --split-x SPLIT_X \
   --photo-source original-photo.png \
   --photo-center-y 0.5 \
-  --background-image generated-background-1170x1560.png \
+  --background-image adaptive-background-1170x1560.png \
   --shadow-preset premium_float
 ```
 
-## C. 既有卡片 / 海报只换背景
+## D. 既有卡片 / 海报只换背景
 
 当用户提供的是已经设计好的票根、卡片、海报或产品主体，不套票根几何。使用风格编译 Prompt，并把下面的约束放在最前面：
 
@@ -111,10 +139,10 @@ Image 1 is the edit target. Change only [the exact problem]. Keep the canvas, su
 Change only the ticket geometry. Set the ticket body to x=55, y=501, width=1057, height=507 on the 1170 x 1560 canvas. Lock the outer margins to 55 px left and 58 px right. Preserve the current photo crop, palette, text, perforation, notch and shadow.
 ```
 
-纯色背景修正：
+默认轻质感纯色背景修正：
 
 ```text
-Change only the full-canvas background to [HEX], sampled from Image 1 at HSL lightness 58-62% and saturation 6-20%. Use one flat edge-to-edge color with no gradient, texture, vignette or light patch. Preserve the ticket, photo, crop, text and shadow exactly.
+Change only the full-canvas background to the [HEX] color family sampled from Image 1 at HSL lightness 58-62% and saturation 6-20%. Keep it visually near-solid with only imperceptible monochrome microtexture. No gradient, vignette, directional light, window shadow, leaf shadow, spotlight, visible grain cluster or pattern. Preserve the ticket, photo, crop, text and shadow exactly.
 ```
 
 风格背景修正：重新运行风格编译器，降低 `strength` 或更换光线/阴影预设，只重新生成背景底图，再确定性合成；不要重生成主体。

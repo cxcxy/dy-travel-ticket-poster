@@ -1,10 +1,18 @@
 # DY Travel Ticket Poster
 
-English | [简体中文](README.md)
+English | [简体中文](README.md) | [Live 12-style gallery](https://cxcxy.github.io/dy-travel-ticket-poster/)
 
 Turn one photo or a batch of photos into a consistent series of travel-ticket posters. The Skill keeps the recognizable subject and scene from the source image, then builds a centered ticket with an adaptive color palette, a perforated information stub, neutral scene naming, a date, a serial number, and a decorative barcode.
 
 The final deliverable for each photo is a clean `1170 × 1560` PNG in a `3:4` aspect ratio. Phone UI, notifications, player controls, and watermarks are excluded from the poster.
+
+## 2026-08-15 update
+
+- Added 12 gallery-locked configurable background styles addressable by order, Chinese display name, or canonical `style_id`.
+- Changed the no-style default to a photo-derived near-solid background with extremely subtle monochrome tactile texture. The texture is held to roughly `base ±3`; gradients, vignettes, window shadows, leaf shadows, and spotlights are not added by default.
+- Batch inputs now derive one theme hue per final photo crop. A shared color family is used only when explicitly requested.
+- Added a [GitHub Pages gallery for all 12 styles](https://cxcxy.github.io/dy-travel-ticket-poster/) with material filters, full previews, and copyable invocation text.
+- Added [scripts/build_pages_gallery.py](scripts/build_pages_gallery.py) to regenerate the site data and optimized WebP previews from the locked registry after validating all 12 source SHA-256 anchors.
 
 ## What the Skill handles
 
@@ -32,14 +40,14 @@ The poster uses a restrained, repeatable layout.
 - Rounded corners, a vertical perforation, a semicircular notch, a soft shadow, and bold condensed text stay consistent across the series
 - Exactly one square-ended perforation divider is allowed, with its first dash flush at the ticket top
 - A tight contact shadow plus a wider ambient shadow grounds the complete ticket
-- With no explicit style request, the canvas uses a flat low-saturation color derived from the photo, normally HSL lightness `58–62%` and saturation `6–20%`
+- With no explicit style request, the canvas uses a photo-derived near-solid color with imperceptible monochrome tactile texture, normally HSL lightness `58–62%` and saturation `6–20%`; no obvious light patch, gradient, or pattern is added
 - The palette changes with each source photo while hierarchy and geometry remain fixed; a batch must not reuse one generic background color
 
 Full construction details are in [references/style-spec.md](references/style-spec.md).
 
 ## Gallery-Locked 12-Style Background System
 
-When a style is requested, the Skill resolves a complete material specification from [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json), rather than changing only a beige color. The 12 styles were distilled one-by-one from the user-supplied gallery and are anchored by source filename, SHA-256, measured background median, and a visual signature. Only background material, light pattern, tonal falloff, and spatial depth are transferred; the reference photograph, people, text, and codes are never copied. Material, lighting, and shadow remain independently composable. The default is `balanced` strength with `strict` subject preservation; the original photo-derived solid background remains the fallback when no style is requested. The generic 20-style baseline remains available in [references/background-styles.json](references/background-styles.json) through an explicit `--registry` override.
+When a style is requested, the Skill resolves a complete material specification from [references/gallery-12-background-styles.json](references/gallery-12-background-styles.json). The 12 styles were distilled one-by-one from the user-supplied gallery and are anchored by source filename, SHA-256, measured background median, and a visual signature. Only background material, light pattern, tonal falloff, and spatial depth are transferred; the reference photograph, people, text, and codes are never copied. Material, lighting, and shadow remain independently composable. Color is adaptive by default: unless the user specifies a background color, every final photo crop supplies its own theme hue. A batch-wide color family is used only when explicitly requested. With no explicit style, the default is a deterministic photo-derived near-solid background with very subtle monochrome texture and no image-generation call. The generic 20-style baseline remains available in [references/background-styles.json](references/background-styles.json) through an explicit `--registry` override.
 
 The 12 default IDs are:
 
@@ -52,7 +60,27 @@ cream_limewash_diffusion       ivory_travertine_diagonal
 cotton_paper_top_glow          caramel_mineral_spotlight
 ```
 
-The primary workflow is: attach one photo or a batch, then choose one of the 12 styles by gallery order, exact display name, or canonical `style_id`. A single input produces one ticket. A batch locks one style, background plate, intensity, lighting, and shadow across all inputs, then exports one independent ticket per photo without making a collage or randomly changing styles.
+### Live gallery and site maintenance
+
+The complete visual catalog is available in the [GitHub Pages 12-style gallery](https://cxcxy.github.io/dy-travel-ticket-poster/). Its static source is in [`docs/`](docs/) and the deployment workflow is [`.github/workflows/pages.yml`](.github/workflows/pages.yml). After the changes reach `main`, the workflow publishes `docs/`; on first setup, select **GitHub Actions** under **Settings → Pages → Build and deployment**.
+
+Preview locally:
+
+```bash
+python3 -m http.server 8000 --directory docs
+```
+
+Then open `http://127.0.0.1:8000/`. Regenerate the gallery after changing the locked reference set:
+
+```bash
+python3 scripts/build_pages_gallery.py \
+  --source-dir "/absolute/path/to/gallery" \
+  --default-preview "/absolute/path/to/default-ticket.png"
+```
+
+The generator updates the website assets, `docs/style-data.json`, and the directly openable `docs/style-data.js` only after all 12 source files pass the registry hash checks.
+
+The primary workflow is: attach one photo or a batch, then choose one of the 12 styles by gallery order, exact display name, or canonical `style_id`. A single input produces one ticket. A batch locks one style, intensity, lighting, and shadow across all inputs while adapting the final background hue to each photo by default. It exports one independent ticket per photo without making a collage or randomly changing styles. One shared background plate is used only when the user explicitly asks for a unified color family.
 
 Example:
 
@@ -65,7 +93,9 @@ The deterministic helper validates the registry, recommends diverse styles, reso
 ```bash
 python3 scripts/background_style_system.py validate
 python3 scripts/background_style_system.py recommend --context "premium warm travel ticket" --count 10
-python3 scripts/background_style_system.py prompt --style-id "第10种" --strength balanced
+python3 scripts/background_style_system.py prompt --style-id "第10种" --strength balanced --palette-mode adaptive --theme-color '#8FA6AD'
+python3 scripts/adapt_background_plate.py --plate material.png --source-photo photo.jpg --palette-mode adaptive --output background.png
+python3 scripts/build_subtle_texture_background.py --source-photo photo.jpg --palette-mode adaptive --output background.png
 python3 scripts/validate_gallery_references.py --source-dir "/absolute/path/to/gallery"
 ```
 
@@ -137,7 +167,7 @@ You can also provide explicit metadata.
 Use $dy-travel-ticket-poster for this photo. Title it WATERFRONT and use 2026 - 08.
 ```
 
-For each input, the workflow inspects the photo, chooses a safe crop, and prepares the ticket metadata. Gallery style mode generates an empty background plate, then [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) deterministically restores the original photo pixels and ticket over that plate before final review.
+For each input, the workflow inspects the photo, chooses a safe crop, and prepares the ticket metadata. With no explicit style, [scripts/build_subtle_texture_background.py](scripts/build_subtle_texture_background.py) creates the near-solid tactile background locally. Gallery style mode instead generates an empty material plate, and [scripts/adapt_background_plate.py](scripts/adapt_background_plate.py) applies the current photo's theme hue or an explicitly shared hue. [scripts/normalize_reference_layout.py](scripts/normalize_reference_layout.py) deterministically restores the original photo pixels and ticket before final review.
 
 ## Metadata behavior
 
@@ -284,6 +314,8 @@ The following examples show the supplied source photo beside the generated trave
 ├── references/prompt-template.md
 ├── references/style-spec.md
 ├── scripts/background_style_system.py
+├── scripts/adapt_background_plate.py
+├── scripts/build_subtle_texture_background.py
 ├── scripts/build_before_after_showcase.py
 ├── scripts/build_ticket_batch.py
 ├── scripts/normalize_output.sh

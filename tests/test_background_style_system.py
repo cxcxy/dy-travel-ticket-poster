@@ -52,6 +52,25 @@ class BackgroundStyleSystemTests(unittest.TestCase):
         self.assertIn("wide diagonal illumination", prompt)
         self.assertIn("no neon", prompt)
 
+    def test_palette_defaults_to_photo_adaptive(self) -> None:
+        resolved = resolve_style(self.registry, "第5种")
+        self.assertEqual(resolved["palette"]["mode"], "adaptive")
+        self.assertIsNone(resolved["palette"]["theme_color"])
+        prompt = compile_prompt(resolved, self.registry)
+        self.assertIn("Palette mode: adaptive", prompt)
+        self.assertIn("do not force the registry hue", prompt)
+
+    def test_unified_palette_keeps_explicit_theme_color(self) -> None:
+        resolved = resolve_style(
+            self.registry,
+            "第5种",
+            palette_mode="unified",
+            theme_color="#8fa6ad",
+        )
+        self.assertEqual(resolved["palette"]["mode"], "unified")
+        self.assertEqual(resolved["palette"]["theme_color"], "#8FA6AD")
+        self.assertIn("Selected theme color: #8FA6AD", compile_prompt(resolved, self.registry))
+
     def test_named_strength_is_clamped_to_style_limits(self) -> None:
         resolved = resolve_style(self.registry, "ivory_paper_window_veil", strength="strong")
         self.assertEqual(resolved["strength"]["requested"], 0.75)

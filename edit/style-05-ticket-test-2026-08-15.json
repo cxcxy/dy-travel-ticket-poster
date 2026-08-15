@@ -1,0 +1,50 @@
+{
+  "batch": {
+    "style_selector": "第5种",
+    "style_id": "caramel_dappled_sun",
+    "style_name": "焦糖树影墙",
+    "strength": "balanced",
+    "lighting": "dappled_afternoon",
+    "shadow_preset": "subtle_float",
+    "subject_preservation": "strict",
+    "background_reuse": "one exact plate for all items"
+  },
+  "items": [
+    {
+      "source": "/Users/mac1/Downloads/测试票根风格/pexels-molnartamasphotography-28101335.jpg",
+      "filename": "01-clock-tower-style-05.png",
+      "background_image": "/Users/mac1/Documents/DY-AI/dy-travel-ticket-poster/output/style-05-ticket-test-2026-08-15/backgrounds/caramel-dappled-sun-1170x1560.png",
+      "shadow_preset": "subtle_float",
+      "photo_center_y": 0.38,
+      "stub_color": "#394C52",
+      "title_lines": ["CLOCK", "TOWER"],
+      "date": "2026 - 08",
+      "number": "NO.28101",
+      "code": "C5K8T3M2"
+    },
+    {
+      "source": "/Users/mac1/Downloads/测试票根风格/pexels-irina-p-225422935-12035545.jpg",
+      "filename": "02-ready-to-go-style-05.png",
+      "background_image": "/Users/mac1/Documents/DY-AI/dy-travel-ticket-poster/output/style-05-ticket-test-2026-08-15/backgrounds/caramel-dappled-sun-1170x1560.png",
+      "shadow_preset": "subtle_float",
+      "photo_center_y": 0.62,
+      "stub_color": "#52372E",
+      "title_lines": ["READY", "TO GO"],
+      "date": "2026 - 08",
+      "number": "NO.12035",
+      "code": "A5R8Y2T4"
+    },
+    {
+      "source": "/Users/mac1/Downloads/测试票根风格/pexels-molnartamasphotography-27645667.jpg",
+      "filename": "03-urban-pair-style-05.png",
+      "background_image": "/Users/mac1/Documents/DY-AI/dy-travel-ticket-poster/output/style-05-ticket-test-2026-08-15/backgrounds/caramel-dappled-sun-1170x1560.png",
+      "shadow_preset": "subtle_float",
+      "photo_center_y": 0.48,
+      "stub_color": "#31464D",
+      "title_lines": ["URBAN", "PAIR"],
+      "date": "2026 - 08",
+      "number": "NO.27645",
+      "code": "P8R2V6N4"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "batch": {
+    "style_id": null,
+    "background_treatment": "near-solid-subtle-texture",
+    "palette_mode": "adaptive",
+    "texture_strength": 3,
+    "seed": 40817
+  },
+  "items": [
+    {
+      "source": "/Users/mac1/Downloads/测试票根风格/pexels-molnartamasphotography-28101335.jpg",
+      "filename": "clock-tower-default-subtle-texture.png",
+      "background_image": "/Users/mac1/Documents/DY-AI/dy-travel-ticket-poster/output/default-subtle-texture-smoke-2026-08-15/clock-tower-subtle-background.png",
+      "source_theme_color": "#C4D1D6",
+      "supporting_background_color": "#8F9DA3",
+      "photo_center_y": 0.38,
+      "stub_color": "#394C52",
+      "title_lines": ["CLOCK", "TOWER"],
+      "date": "2026 - 08",
+      "number": "NO.28101",
+      "code": "C5K8T3M2"
+    }
+  ]
+}

@@ -1,0 +1,294 @@
+window.STYLE_GALLERY_DATA = {
+  "version": "2.1-gallery12",
+  "reference_set": "Coffee Bar Gallery 12",
+  "style_count": 12,
+  "defaults": {
+    "palette_mode": "adaptive",
+    "background": "near-solid-subtle-texture",
+    "texture_range": "base ±3",
+    "subject_preservation": "strict"
+  },
+  "styles": [
+    {
+      "order": 1,
+      "style_id": "warm_linen_side_light",
+      "name": "暖灰亚麻侧光",
+      "description": "暖灰亚麻墙布配合由右向左的宽幅自然侧光，左上略暗、右侧柔亮。",
+      "image": "assets/styles/01-warm-linen-side-light.webp",
+      "base_color": "#B2A08C",
+      "categories": [
+        "textile",
+        "editorial",
+        "warm-neutral"
+      ],
+      "material": "premium linen wallcovering",
+      "lighting": "right_grazing_daylight",
+      "shadow": "premium_float",
+      "best_for": [
+        "咖啡",
+        "旅行",
+        "生活方式",
+        "人文摄影"
+      ],
+      "command": "把这张图片做成票根，使用第1种，其他按默认。"
+    },
+    {
+      "order": 2,
+      "style_id": "ivory_paper_window_veil",
+      "name": "象牙艺术纸柔窗影",
+      "description": "明亮象牙艺术纸上出现两道极柔的斜向窗影，整体高明度、低对比。",
+      "image": "assets/styles/02-ivory-paper-window-veil.webp",
+      "base_color": "#F0E7D9",
+      "categories": [
+        "paper",
+        "bright",
+        "window-light"
+      ],
+      "material": "fine ivory art paper",
+      "lighting": "soft_diagonal_window",
+      "shadow": "subtle_float",
+      "best_for": [
+        "票根",
+        "摄影",
+        "品牌卡片",
+        "清新旅行"
+      ],
+      "command": "把这张图片做成票根，使用第2种，其他按默认。"
+    },
+    {
+      "order": 3,
+      "style_id": "sand_center_glow",
+      "name": "沙岩中心柔光",
+      "description": "中浅沙色矿物哑光墙，主体后方是边界不可见的大面积纵向中心柔光。",
+      "image": "assets/styles/03-sand-center-glow.webp",
+      "base_color": "#B8A187",
+      "categories": [
+        "mineral",
+        "spotlight",
+        "minimal"
+      ],
+      "material": "sand mineral matte wall",
+      "lighting": "broad_center_glow",
+      "shadow": "premium_float",
+      "best_for": [
+        "产品卡片",
+        "人物卡片",
+        "电影票根",
+        "旅行"
+      ],
+      "command": "把这张图片做成票根，使用第3种，其他按默认。"
+    },
+    {
+      "order": 4,
+      "style_id": "mushroom_cinematic_vignette",
+      "name": "蘑菇灰电影墙",
+      "description": "偏暗蘑菇灰矿物墙以中央提亮和四周柔和衰减形成成熟电影感。",
+      "image": "assets/styles/04-mushroom-cinematic-vignette.webp",
+      "base_color": "#A69682",
+      "categories": [
+        "cinematic",
+        "mineral",
+        "mature"
+      ],
+      "material": "mushroom mineral wall",
+      "lighting": "cinematic_center_falloff",
+      "shadow": "architectural",
+      "best_for": [
+        "电影票根",
+        "摄影作品",
+        "人物卡片",
+        "成熟旅行"
+      ],
+      "command": "把这张图片做成票根，使用第4种，其他按默认。"
+    },
+    {
+      "order": 5,
+      "style_id": "caramel_dappled_sun",
+      "name": "焦糖树影墙",
+      "description": "焦糖浅陶土墙配合大块虚化自然光斑，形成温暖午后生活方式氛围。",
+      "image": "assets/styles/05-caramel-dappled-sun.webp",
+      "base_color": "#D19E67",
+      "categories": [
+        "warm-light",
+        "plaster",
+        "lifestyle"
+      ],
+      "material": "caramel lime plaster",
+      "lighting": "dappled_afternoon",
+      "shadow": "subtle_float",
+      "best_for": [
+        "咖啡馆",
+        "面包店",
+        "秋日旅行",
+        "生活方式"
+      ],
+      "command": "把这张图片做成票根，使用第5种，其他按默认。"
+    },
+    {
+      "order": 6,
+      "style_id": "natural_washi_halo",
+      "name": "天然和纸柔光",
+      "description": "暖象牙手工和纸带有细微自然纸纤维，中央上方形成柔和纵向漫射光。",
+      "image": "assets/styles/06-natural-washi-halo.webp",
+      "base_color": "#DDCAAF",
+      "categories": [
+        "paper",
+        "Japanese",
+        "calm"
+      ],
+      "material": "Japanese handmade washi",
+      "lighting": "paper_halo",
+      "shadow": "subtle_float",
+      "best_for": [
+        "日本旅行",
+        "料理",
+        "人物卡片",
+        "传统文化"
+      ],
+      "command": "把这张图片做成票根，使用第6种，其他按默认。"
+    },
+    {
+      "order": 7,
+      "style_id": "greige_stucco_soft_beams",
+      "name": "暖灰灰泥柔影",
+      "description": "暖灰灰泥墙上分布宽幅纵向柔光与柔影，空间层次明确但光边不可见。",
+      "image": "assets/styles/07-greige-stucco-soft-beams.webp",
+      "base_color": "#BDA88F",
+      "categories": [
+        "stucco",
+        "soft-light",
+        "architectural"
+      ],
+      "material": "warm greige stucco",
+      "lighting": "vertical_soft_beams",
+      "shadow": "premium_float",
+      "best_for": [
+        "建筑",
+        "酒店",
+        "旅行",
+        "咖啡",
+        "人物卡片"
+      ],
+      "command": "把这张图片做成票根，使用第7种，其他按默认。"
+    },
+    {
+      "order": 8,
+      "style_id": "ivory_stucco_window_beam",
+      "name": "象牙灰泥窗光",
+      "description": "象牙灰泥墙上有一主一次两道斜向建筑窗光，光影更明确但保持自然。",
+      "image": "assets/styles/08-ivory-stucco-window-beam.webp",
+      "base_color": "#AF9A7F",
+      "categories": [
+        "stucco",
+        "window-light",
+        "architectural"
+      ],
+      "material": "ivory stucco wall",
+      "lighting": "architectural_diagonal",
+      "shadow": "architectural",
+      "best_for": [
+        "建筑",
+        "酒店",
+        "咖啡",
+        "街拍",
+        "旅行"
+      ],
+      "command": "把这张图片做成票根，使用第8种，其他按默认。"
+    },
+    {
+      "order": 9,
+      "style_id": "cream_limewash_diffusion",
+      "name": "奶油石灰墙漫射",
+      "description": "奶油石灰墙保留细小手工起伏，以宽阔不规则漫射光呈现安静建筑质感。",
+      "image": "assets/styles/09-cream-limewash-diffusion.webp",
+      "base_color": "#C5B19A",
+      "categories": [
+        "limewash",
+        "mineral",
+        "quiet-luxury"
+      ],
+      "material": "cream limewash wall",
+      "lighting": "limewash_diffusion",
+      "shadow": "architectural",
+      "best_for": [
+        "民宿",
+        "酒店",
+        "咖啡",
+        "建筑",
+        "旅行"
+      ],
+      "command": "把这张图片做成票根，使用第9种，其他按默认。"
+    },
+    {
+      "order": 10,
+      "style_id": "ivory_travertine_diagonal",
+      "name": "象牙洞石斜光",
+      "description": "明亮象牙洞石保留密度克制的天然细孔，以宽幅斜光揭示石材层次。",
+      "image": "assets/styles/10-ivory-travertine-diagonal.webp",
+      "base_color": "#DBCFBD",
+      "categories": [
+        "stone",
+        "architecture",
+        "luxury"
+      ],
+      "material": "premium ivory travertine",
+      "lighting": "stone_diagonal",
+      "shadow": "architectural",
+      "best_for": [
+        "酒店",
+        "建筑",
+        "意大利旅行",
+        "精品咖啡",
+        "商业卡片"
+      ],
+      "command": "把这张图片做成票根，使用第10种，其他按默认。"
+    },
+    {
+      "order": 11,
+      "style_id": "cotton_paper_top_glow",
+      "name": "棉纸顶光",
+      "description": "明亮暖象牙棉纸带轻微纸浆纤维，顶部中央均匀提亮并向下自然衰减。",
+      "image": "assets/styles/11-cotton-paper-top-glow.webp",
+      "base_color": "#E6D7C1",
+      "categories": [
+        "paper",
+        "print",
+        "bright"
+      ],
+      "material": "cotton rag paper",
+      "lighting": "top_gallery_glow",
+      "shadow": "subtle_float",
+      "best_for": [
+        "票根",
+        "摄影卡片",
+        "品牌印刷",
+        "清新旅行"
+      ],
+      "command": "把这张图片做成票根，使用第11种，其他按默认。"
+    },
+    {
+      "order": 12,
+      "style_id": "caramel_mineral_spotlight",
+      "name": "焦糖矿物聚光",
+      "description": "深焦糖矿物墙由左上斜向聚光照亮，四周受控压暗，形成浓郁但不俗艳的高级感。",
+      "image": "assets/styles/12-caramel-mineral-spotlight.webp",
+      "base_color": "#AC7E4B",
+      "categories": [
+        "mineral",
+        "spotlight",
+        "warm-luxury"
+      ],
+      "material": "caramel mineral plaster",
+      "lighting": "upper_left_spotlight",
+      "shadow": "premium_float",
+      "best_for": [
+        "咖啡",
+        "精品店",
+        "电影票根",
+        "夜间旅行",
+        "产品卡片"
+      ],
+      "command": "把这张图片做成票根，使用第12种，其他按默认。"
+    }
+  ]
+};

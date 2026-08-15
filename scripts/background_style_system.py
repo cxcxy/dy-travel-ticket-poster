@@ -50,6 +50,7 @@ REQUIRED_STYLE_FIELDS = (
 )
 HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+PALETTE_MODES = ("adaptive", "unified")
 CHINESE_STYLE_ORDERS = {
     "一": 1,
     "二": 2,
@@ -244,6 +245,8 @@ def resolve_style(
     shadow: str | None = None,
     preservation: str = "strict",
     temperature_shift: int = 0,
+    palette_mode: str = "adaptive",
+    theme_color: str | None = None,
 ) -> dict[str, Any]:
     requested_style = style_id
     canonical = canonical_style_id(registry, requested_style)
@@ -266,6 +269,12 @@ def resolve_style(
         raise ValueError(f"unknown subject preservation mode: {preservation}")
     if not -100 <= temperature_shift <= 100:
         raise ValueError("temperature_shift must be between -100 and 100")
+    if palette_mode not in PALETTE_MODES:
+        raise ValueError(f"unknown palette mode: {palette_mode}")
+    if theme_color is not None:
+        theme_color = theme_color.upper()
+        if not HEX_COLOR.fullmatch(theme_color):
+            raise ValueError("theme_color must be a 6-digit RGB hex value")
     return {
         "style_id": style_id,
         "requested_style": requested_style,
@@ -278,6 +287,18 @@ def resolve_style(
             "instruction": registry["subject_preservation_modes"][preservation],
         },
         "temperature_shift": temperature_shift,
+        "palette": {
+            "mode": palette_mode,
+            "theme_color": theme_color,
+            "instruction": (
+                "Derive a separate theme color from the final crop of each source photo. "
+                "Keep the style material, texture, light pattern and shadow identity, but do not "
+                "force the registry hue."
+                if palette_mode == "adaptive"
+                else "Use one shared theme color family for the entire batch while keeping the "
+                "selected style material, texture, light pattern and shadow identity."
+            ),
+        },
     }
 
 
@@ -376,6 +397,19 @@ def compile_prompt(resolved: dict[str, Any], registry: dict[str, Any]) -> str:
     light_pattern = lighting.get("pattern", "natural low-contrast illumination")
     safe_zone = lighting.get("safe_zone", "keep the subject-safe region restrained")
     anchor = style.get("reference_anchor")
+    palette = resolved["palette"]
+    if palette["theme_color"]:
+        theme_color_line = f"Selected theme color: {palette['theme_color']}."
+    elif palette["mode"] == "adaptive":
+        theme_color_line = (
+            "Before generation, derive one concrete theme color locally from the current "
+            "photo's final ticket crop and insert it here."
+        )
+    else:
+        theme_color_line = (
+            "Before generation, choose one concrete shared theme color from the batch or "
+            "the user's requested color family and insert it here."
+        )
     reference_identity = ""
     if isinstance(anchor, dict):
         reference_identity = f"""[REFERENCE-LOCKED STYLE IDENTITY]
@@ -390,9 +424,12 @@ Use the reference only for background material, light pattern, tonal falloff and
 {material['primary']}; secondary material: {material['secondary']}; realism: {material['realism']}.
 {style['prompt_fragment']}.
 
-[COLOR]
-Base {colors['base']}; secondary {colors['secondary']}; highlight {colors['highlight']}.
-Temperature: {colors['temperature']}; saturation: {colors['saturation']}; temperature shift: {resolved['temperature_shift']:+d}.
+[COLOR POLICY]
+Palette mode: {palette['mode']}. {palette['instruction']}
+{theme_color_line}
+Render the selected theme hue as a quiet supporting background at approximately HSL lightness 62% and saturation 12-28%.
+Registry reference colors {colors['base']} / {colors['secondary']} / {colors['highlight']} define tonal relationships only; do not force their hue when a photo-derived or unified theme color is active.
+Reference temperature: {colors['temperature']}; reference saturation: {colors['saturation']}; temperature shift: {resolved['temperature_shift']:+d}.
 
 [TEXTURE]
 {texture['type']}; scale: {texture['scale']}; density: {texture['density']}; native strength: {texture['strength']:.2f}.
@@ -445,6 +482,8 @@ def build_parser() -> argparse.ArgumentParser:
         child.add_argument("--shadow")
         child.add_argument("--preservation", default="strict")
         child.add_argument("--temperature-shift", type=int, default=0)
+        child.add_argument("--palette-mode", choices=PALETTE_MODES, default="adaptive")
+        child.add_argument("--theme-color")
     return parser
 
 
@@ -484,6 +523,8 @@ def main() -> None:
                 args.shadow,
                 args.preservation,
                 args.temperature_shift,
+                args.palette_mode,
+                args.theme_color,
             )
         except ValueError as exc:
             print(str(exc), file=sys.stderr)

@@ -1,0 +1,92 @@
+window.CAROUSEL_ITEMS = [
+  {
+    image: "assets/carousel/autumn-boat-travel-ticket-2026-08.webp",
+    kicker: "TICKET 01",
+    title: "秋日小舟",
+    alt: "票根成品：秋日小舟",
+  },
+  {
+    image: "assets/carousel/autumn-cup-travel-ticket-2026-08.webp",
+    kicker: "TICKET 02",
+    title: "秋日杯",
+    alt: "票根成品：秋日杯",
+  },
+  {
+    image: "assets/carousel/city-pair-travel-ticket-2026-08.webp",
+    kicker: "TICKET 03",
+    title: "城市双鸽",
+    alt: "票根成品：城市双鸽",
+  },
+  {
+    image: "assets/carousel/city-shadow-travel-ticket-2026-08.webp",
+    kicker: "TICKET 04",
+    title: "城市光影",
+    alt: "票根成品：城市光影",
+  },
+  {
+    image: "assets/carousel/clock-tower-travel-ticket-2026-08.webp",
+    kicker: "TICKET 05",
+    title: "钟楼",
+    alt: "票根成品：钟楼",
+  },
+  {
+    image: "assets/carousel/hill-church-travel-ticket-2026-08.webp",
+    kicker: "TICKET 06",
+    title: "山丘教堂",
+    alt: "票根成品：山丘教堂",
+  },
+  {
+    image: "assets/carousel/old-square-travel-ticket-2026-08.webp",
+    kicker: "TICKET 07",
+    title: "老城广场",
+    alt: "票根成品：老城广场",
+  },
+  {
+    image: "assets/carousel/pack-light-travel-ticket-2026-08.webp",
+    kicker: "TICKET 08",
+    title: "轻装出发",
+    alt: "票根成品：轻装出发",
+  },
+  {
+    image: "assets/carousel/pink-house-travel-ticket-2026-08-batch-v2.webp",
+    kicker: "TICKET 09",
+    title: "粉色小屋",
+    alt: "票根成品：粉色小屋",
+  },
+  {
+    image: "assets/carousel/red-roofs-travel-ticket-2026-08.webp",
+    kicker: "TICKET 10",
+    title: "红色屋顶",
+    alt: "票根成品：红色屋顶",
+  },
+  {
+    image: "assets/carousel/stone-tower-travel-ticket-2026-08.webp",
+    kicker: "TICKET 11",
+    title: "石塔",
+    alt: "票根成品：石塔",
+  },
+  {
+    image: "assets/carousel/sun-bloom-travel-ticket-2026-08.webp",
+    kicker: "TICKET 12",
+    title: "向阳花开",
+    alt: "票根成品：向阳花开",
+  },
+  {
+    image: "assets/carousel/sunlit-court-travel-ticket-2026-08.webp",
+    kicker: "TICKET 13",
+    title: "阳光庭院",
+    alt: "票根成品：阳光庭院",
+  },
+  {
+    image: "assets/carousel/sunset-coast-travel-ticket-2026-08.webp",
+    kicker: "TICKET 14",
+    title: "日落海岸",
+    alt: "票根成品：日落海岸",
+  },
+  {
+    image: "assets/carousel/travel-day-travel-ticket-2026-08.webp",
+    kicker: "TICKET 15",
+    title: "旅行日",
+    alt: "票根成品：旅行日",
+  },
+];
