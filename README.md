@@ -33,25 +33,54 @@
 
 ## 小白使用方法
 
-### 第一步：准备图片
+### 第一步：安装 Skill
 
-上传一张或多张清晰的 PNG、JPG 照片。照片里可以是旅行风景、人物、动物、建筑、咖啡店或任何你想做成票根的内容。
-
-### 第二步：调用 Skill
-
-在 Codex 中输入：
-
-```text
-使用 $dy-travel-ticket-poster，把这张图片做成旅行票根。
-```
-
-如果你已经能在 Codex 里看到 `dy-travel-ticket-poster`，就不需要再次安装。没有看到时，先安装这个 Skill，然后重新打开一个任务。
-
-最简单的安装说法是，把这个仓库链接发给 Codex：
+最简单的安装说法是：
 
 ```text
 请安装这个 Skill：https://github.com/cxcxy/dy-travel-ticket-poster
 ```
+
+这个 Skill 不只给 Codex 用。它使用通用的 `SKILL.md` 格式，下面这些 Agent 都可以使用：
+
+#### 可以直接识别 Skill 的工具
+
+| 工具 | 怎么安装 | 安装后怎么调用 |
+| --- | --- | --- |
+| Codex | 在对话里发送本仓库链接，并说“请安装这个 Skill” | 直接说“把这张图片做成旅行票根” |
+| Claude Code | 把仓库文件夹放到 `~/.claude/skills/dy-travel-ticket-poster/` | 输入 `/dy-travel-ticket-poster`，也可以直接描述需求 |
+| Gemini CLI | 执行 `gemini skills install https://github.com/cxcxy/dy-travel-ticket-poster` | 输入 `/skills list` 检查，再描述需求 |
+| Kimi Code | 把仓库文件夹放到 `~/.kimi-code/skills/dy-travel-ticket-poster/` | 输入 `/skill:dy-travel-ticket-poster`，再描述需求 |
+| 腾讯云 CodeBuddy | 在项目的 `.codebuddy/skills/dy-travel-ticket-poster/` 中放入 `SKILL.md` | 新建任务后直接描述需求 |
+
+#### 其他常见 Agent 工具
+
+下面这些工具也可以使用这个 Skill，但通常需要把仓库里的 `SKILL.md` 复制到它们的“项目规则 / 自定义指令 / Skills”位置，再开始对话：
+
+| 工具 | 类型 |
+| --- | --- |
+| Cursor | 海外常用编程 Agent |
+| Windsurf | 海外常用编程 Agent |
+| Cline、Roo Code | VS Code Agent 插件 |
+| GitHub Copilot、Copilot CLI | GitHub Agent |
+| Trae | 字节跳动 Agent |
+| 通义灵码、MarsCode | 国产编程 Agent |
+| CodeGeeX、GLM 编程工具 | 国产编程 Agent |
+| 百度 Comate | 国产编程 Agent |
+| Coze（扣子） | 国产 Agent 平台 |
+| 豆包 | 国产 AI 助手 |
+
+这些工具的菜单名称可能会随版本变化。如果没有“安装 Skill”按钮，就把 `SKILL.md` 内容复制到项目规则里，或者在对话中说：
+
+```text
+请读取这个仓库里的 SKILL.md，并按照里面的要求把这张图片做成旅行票根。
+```
+
+安装后如果工具没有马上识别，请关闭并重新打开当前任务。
+
+### 第二步：准备图片
+
+上传一张或多张清晰的 PNG、JPG 照片。照片里可以是旅行风景、人物、动物、建筑、咖啡店或任何你想做成票根的内容。
 
 ### 第三步：直接制作，想换再选风格
 

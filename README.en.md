@@ -33,25 +33,54 @@ Here are a few examples. The left column is the original photo and the right col
 
 ## How to use it
 
-### 1. Prepare your photos
+### 1. Install the Skill
 
-Upload one or more clear PNG or JPG photos. Travel scenes, people, animals, buildings, cafés, and everyday moments all work well.
-
-### 2. Call the Skill
-
-In Codex, type:
-
-```text
-Use $dy-travel-ticket-poster to turn this image into a travel ticket poster.
-```
-
-If Codex already shows `dy-travel-ticket-poster`, you do not need to install it again. If it is not visible, install the Skill first and start a new task.
-
-The simplest way to install it is to send this repository link to Codex:
+The simplest installation message is:
 
 ```text
 Please install this Skill: https://github.com/cxcxy/dy-travel-ticket-poster
 ```
+
+This Skill is not limited to Codex. It uses the standard `SKILL.md` format and can be used with these Agents:
+
+#### Tools that can read Skills directly
+
+| Tool | How to install | How to use it after installation |
+| --- | --- | --- |
+| Codex | Send the repository link in chat and ask it to install the Skill | Say “turn this image into a travel ticket poster” |
+| Claude Code | Put the repository folder in `~/.claude/skills/dy-travel-ticket-poster/` | Type `/dy-travel-ticket-poster`, or describe the task |
+| Gemini CLI | Run `gemini skills install https://github.com/cxcxy/dy-travel-ticket-poster` | Check with `/skills list`, then describe the task |
+| Kimi Code | Put the repository folder in `~/.kimi-code/skills/dy-travel-ticket-poster/` | Type `/skill:dy-travel-ticket-poster`, then describe the task |
+| Tencent Cloud CodeBuddy | Put `SKILL.md` in `.codebuddy/skills/dy-travel-ticket-poster/` in the project | Start a new task and describe the task |
+
+#### Other common Agent tools
+
+These tools can also use the Skill, but usually require you to copy `SKILL.md` into their project rules, custom instructions, or Skills area first:
+
+| Tool | Type |
+| --- | --- |
+| Cursor | Popular international coding Agent |
+| Windsurf | Popular international coding Agent |
+| Cline, Roo Code | VS Code Agent extensions |
+| GitHub Copilot, Copilot CLI | GitHub Agents |
+| Trae | ByteDance Agent |
+| Tongyi Lingma, MarsCode | Chinese coding Agents |
+| CodeGeeX, GLM coding tools | Chinese coding Agents |
+| Baidu Comate | Chinese coding Agent |
+| Coze (扣子) | Chinese Agent platform |
+| Doubao（豆包） | Chinese AI assistant |
+
+Menu names can change between versions. If a tool has no “Install Skill” button, copy the contents of `SKILL.md` into its project rules, or say:
+
+```text
+Please read the SKILL.md file in this repository and follow it to turn this image into a travel ticket poster.
+```
+
+If the tool does not recognize it right away, close and reopen the current task.
+
+### 2. Prepare your photos
+
+Upload one or more clear PNG or JPG photos. Travel scenes, people, animals, buildings, cafés, and everyday moments all work well.
 
 ### 3. Start with the default, then change the style if you want
 

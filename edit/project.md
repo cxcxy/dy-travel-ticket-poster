@@ -437,3 +437,23 @@
 - 网站：参考案例、Hero 说明、使用区和更新卡片同步改为“默认先用，想换再选”，默认复制示例不再带第 10 种风格。
 - 验证：`docs/index.html` 无重复 id；中英文 README 的默认说明、可选风格说明和图片链接均存在；`git diff --check` 通过。
 - Git 边界：仍只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。
+
+## 2026-08-16 · 安装说明扩展到常见 Agent
+
+- 用户要求：把“安装 Skill”放在小白教程第一步，不局限于 Codex，并列出常见海外与国产 Agent 的使用方式。
+- 文档：`README.md` 与 `README.en.md` 新增可直接识别通用 `SKILL.md` 的 Codex、Claude Code、Gemini CLI、Kimi Code、腾讯云 CodeBuddy；同时列出 Cursor、Windsurf、Cline、Roo Code、GitHub Copilot、Trae、通义灵码、MarsCode、CodeGeeX、GLM 和百度 Comate 等可通过项目规则或自定义指令导入的工具。
+- 小白流程：步骤调整为“安装 Skill → 准备图片 → 默认制作 → 批量处理 → 修改结果”，保留默认风格优先、想换再选的规则。
+- 验证：中英文 README 的安装表格、工具名称、示例链接和原有案例图片路径均存在；`git diff --check` 通过。
+- Git 边界：本轮只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。
+
+## 2026-08-16 · 补充 Coze 与豆包
+
+- 用户确认：Coze（扣子）和豆包也可以使用这个 Skill。
+- 文档：中英文 README 的常见 Agent 列表新增 Coze（扣子）与豆包，并归入可通过项目规则、Skill 或自定义指令导入的工具。
+- Git 边界：本轮只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。
+
+## 2026-08-16 · 安装提示前置
+
+- 用户要求：将“请安装这个 Skill：https://github.com/cxcxy/dy-travel-ticket-poster”紧接放在“第一步：安装 Skill”标题后面。
+- 文档：中英文 README 均已把最短安装提示前置，并移除工具列表后的重复提示。
+- Git 边界：本轮只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。
