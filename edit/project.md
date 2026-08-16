@@ -457,3 +457,11 @@
 - 用户要求：将“请安装这个 Skill：https://github.com/cxcxy/dy-travel-ticket-poster”紧接放在“第一步：安装 Skill”标题后面。
 - 文档：中英文 README 均已把最短安装提示前置，并移除工具列表后的重复提示。
 - Git 边界：本轮只修改本地分支 `codex/gallery-12-configurable-styles`，未暂存、未提交、未推送。
+
+## 2026-08-16 · 默认改为照片主色细腻哑光纸纹
+
+- 用户要求：将旅行票根的全局默认背景固定为“照片主色 + 细腻哑光纸纹，克制柔和”。
+- 实现：`scripts/build_subtle_texture_background.py` 现在从照片环境主色保留色相，HSL 饱和度缩放至来源的约 `72%`（限制 `16–56%`），明度限制在 `46–68%`；默认纸纹强度为 `2`，亮度仅在基色 `±2` 内变化。明确要求“纯色 / 无纹理”时才关闭纸纹。
+- 规则同步：源 Skill 的 `SKILL.md`、风格规范、提示模板、配色说明、入门文档、Pages 文案及展示数据全部使用这一定义；当前安装副本 `/Users/mac1/.codex/skills/dy-travel-ticket-poster/` 的执行规则、用户文档与同一套背景生成器已同步。
+- 验证：`tests/test_background_style_system.py`（10 项）、`tests/test_styled_background_composite.py`（7 项）及 `scripts/test_ticket_pipeline.py`（20 项）通过；源与安装副本的默认背景脚本均能生成同一选色结果，并完成语法检查。样张 `output/default-main-colour-matte-paper-smoke-2026-08-16/background.png` 为 `1170 × 1560` 灰度范围 `178–182`、标准差 `0.93`，已目视确认其为无渐变、无光斑的低对比纸面。`git diff --check`、Pages JSON/JavaScript 语法检查通过；官方 `quick_validate.py` 因当前 Python 缺少 `PyYAML` 未运行。
+- Git 边界：本轮未暂存、未提交、未推送。

@@ -90,7 +90,7 @@ The simplest option is to make the poster without choosing a style:
 Use the default style.
 ```
 
-The default style uses a light background that follows the colors in your photo.
+The default style uses a restrained version of the photo's main color, finished with fine matte paper texture.
 
 Only if you want a different look, open the [12-style preview](https://cxcxy.github.io/dy-travel-ticket-poster/) and tell the Skill the number or Chinese name you like.
 
@@ -154,7 +154,7 @@ Change the title to WATERFRONT and the date to 2026 - 08.
 ## What happens by default
 
 - Without a style request, the background follows the main colors in each photo.
-- The default background is close to a solid color with a very light texture.
+- The default background preserves each photo's main hue, softens saturation, and adds fine matte paper texture visible only up close.
 - In a batch, each photo gets its own matching color by default.
 - To use one color family for all photos, say “use one shared blue-gray color family”.
 - If you do not provide a title, place, or date, the Skill uses simple neutral wording instead of guessing.
@@ -194,6 +194,6 @@ Use this travel photo with style 8. Set the title to OLD TOWN and the date to 20
 ## 2026-08-15 update
 
 - Added 12 selectable background styles.
-- The default background now follows the colors in the photo.
+- The default background now uses the photo's restrained main color with fine matte paper texture.
 - Added support for single-photo and batch creation.
 - Added an online preview page so you can compare styles before choosing one.

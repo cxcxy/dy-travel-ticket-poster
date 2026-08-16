@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the default photo-derived, near-solid background with subtle texture."""
+"""Build the default photo-main-colour background with fine matte paper texture."""
 
 from __future__ import annotations
 
@@ -21,18 +21,22 @@ from normalize_reference_layout import CANVAS_SIZE
 
 
 DEFAULT_SEED = 40817
-DEFAULT_TEXTURE_STRENGTH = 3
-TARGET_LIGHTNESS = 0.60
-MIN_SATURATION = 0.06
-MAX_SATURATION = 0.20
+DEFAULT_TEXTURE_STRENGTH = 2
+SATURATION_SCALE = 0.72
+MIN_LIGHTNESS = 0.46
+MAX_LIGHTNESS = 0.68
+MIN_SATURATION = 0.16
+MAX_SATURATION = 0.56
 
 
 def supporting_color(theme_color: tuple[int, int, int]) -> tuple[int, int, int]:
-    hue, _lightness, saturation = colorsys.rgb_to_hls(
+    """Retain the photograph's colour identity, softened for a quiet backdrop."""
+    hue, lightness, saturation = colorsys.rgb_to_hls(
         *(channel / 255.0 for channel in theme_color)
     )
-    muted_saturation = min(MAX_SATURATION, max(MIN_SATURATION, saturation * 0.55))
-    values = colorsys.hls_to_rgb(hue, TARGET_LIGHTNESS, muted_saturation)
+    softened_saturation = min(MAX_SATURATION, max(MIN_SATURATION, saturation * SATURATION_SCALE))
+    softened_lightness = min(MAX_LIGHTNESS, max(MIN_LIGHTNESS, lightness))
+    values = colorsys.hls_to_rgb(hue, softened_lightness, softened_saturation)
     return tuple(round(channel * 255) for channel in values)
 
 
@@ -50,6 +54,8 @@ def build_subtle_background(
     rng = random.Random(seed)
 
     fine_size = (width // 2, height // 2)
+    # Fine, low-contrast tooth keeps the field matte and tactile without
+    # introducing visible noise, fibres, gradients, or directional light.
     fine = Image.frombytes(
         "L",
         fine_size,
@@ -128,7 +134,7 @@ def main() -> None:
         json.dumps(
             {
                 "status": "ok",
-                "treatment": "near-solid-subtle-texture",
+                "treatment": "photo-main-colour-fine-matte-paper",
                 "palette_mode": args.palette_mode,
                 "source_theme_colors": [as_hex(color) for color in extracted],
                 "selected_theme_color": as_hex(selected),

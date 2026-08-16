@@ -1,6 +1,6 @@
 # 图片编辑提示词模板
 
-标准票根不得依赖图片模型生成几何、文字、条码或背景色；这些层统一由 `render_ticket_poster.py` 或 `build_ticket_batch.py` 确定性完成。每张照片单独处理，先判断使用默认轻质感纯色背景还是显式图集风格背景；不要把两套背景要求同时写进一条提示词。
+标准票根不得依赖图片模型生成几何、文字、条码或背景色；这些层统一由 `render_ticket_poster.py` 或 `build_ticket_batch.py` 确定性完成。每张照片单独处理，先判断使用默认“照片主色 + 细腻哑光纸纹”背景还是显式图集风格背景；不要把两套背景要求同时写进一条提示词。
 
 ## A. 无语义环境扩展
 
@@ -27,20 +27,20 @@ Hard constraints:
 
 同时用 `view_image` 对比原图和扩展图，记录生成边缘。只要主体、建筑、商品或文字发生改变，就丢弃扩展图，不得继续 edit-on-edit。
 
-## B. 默认轻质感纯色背景
+## B. 默认照片主色细腻哑光纸纹背景
 
-用户没有指定 `style_id`、材质、光影或背景氛围时，不调用生图模型。直接从最终照片裁切提取主题色，并确定性生成近似纯色背景：
+用户没有指定 `style_id`、材质、光影或背景氛围时，不调用生图模型。直接从最终照片裁切提取环境主色，并确定性生成克制柔和的主色细腻哑光纸纹背景：
 
 ```bash
 python3 scripts/build_subtle_texture_background.py \
   --source-photo original-photo.png \
   --photo-center-y 0.5 \
   --palette-mode adaptive \
-  --texture-strength 3 \
+  --texture-strength 2 \
   --output subtle-solid-background-1170x1560.png
 ```
 
-默认纹理亮度振幅约 `±3`，只产生细微触感；第一眼仍必须是纯色。禁止渐变、暗角、树影、窗影、聚光、纸纤维、石材纹路、颗粒团块和可识别图案。用户明确要求统一色系时，使用 `--palette-mode unified --theme-color '#RRGGBB'`，整组复用同一背景。
+默认保留照片主色色相，把饱和度收至原色约 `72%`，并以亮度约 `±2` 的哑光细纸纹提供触感；远看必须是一整块克制柔和的主色。禁止渐变、暗角、树影、窗影、聚光、明显纸纤维、石材纹路、颗粒团块和可识别图案。用户明确要求“纯色 / 无纹理”时才不用本步骤；用户明确要求统一色系时，使用 `--palette-mode unified --theme-color '#RRGGBB'`，整组复用同一背景。
 
 合成时将结果作为批量清单中的 `background_image` 交给 `build_ticket_batch.py`。旧版 `normalize_reference_layout.py --background-image` 只用于迁移既有票根。
 
@@ -106,10 +106,10 @@ Image 1 is the edit target. Change only [the exact problem]. Keep the canvas, su
 Change only the ticket geometry. Set the ticket body to x=55, y=501, width=1057, height=507 on the 1170 x 1560 canvas. Lock the outer margins to 55 px left and 58 px right. Preserve the current photo crop, palette, text, perforation, notch and shadow.
 ```
 
-默认轻质感纯色背景修正：
+默认照片主色细腻纸纹背景修正：
 
 ```text
-Change only the full-canvas background to the [HEX] color family sampled from Image 1 at HSL lightness 58-62% and saturation 6-20%. Keep it visually near-solid with only imperceptible monochrome microtexture. No gradient, vignette, directional light, window shadow, leaf shadow, spotlight, visible grain cluster or pattern. Preserve the ticket, photo, crop, text and shadow exactly.
+Change only the full-canvas background to the restrained main-color family sampled from Image 1. Preserve the photo-derived hue; lower saturation to about 72% of its source value, bounded to a calm usable range, and keep the surface matte. Add only very subtle low-contrast fine paper tooth (about ±2 brightness): no gradient, vignette, directional light, window shadow, leaf shadow, spotlight, visible grain cluster, pattern, gloss, or reflection. Preserve the ticket, photo, crop, text and shadow exactly.
 ```
 
 风格背景修正：重新运行风格编译器，降低 `strength` 或更换光线/阴影预设，只重新生成背景底图，再确定性合成；不要重生成主体。

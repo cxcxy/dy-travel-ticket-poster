@@ -107,8 +107,8 @@ def build_gallery(
         "style_count": len(items),
         "defaults": {
             "palette_mode": "adaptive",
-            "background": "near-solid-subtle-texture",
-            "texture_range": "base ±3",
+            "background": "photo-main-colour-fine-matte-paper",
+            "texture_range": "base ±2",
             "subject_preservation": "strict",
         },
         "styles": items,

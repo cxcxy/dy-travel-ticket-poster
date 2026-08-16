@@ -215,7 +215,7 @@ filters.forEach((button) => {
 });
 
 document.querySelector("#copy-default").addEventListener("click", () => {
-  copyText("把这张图片做成票根，使用默认轻质感纯色背景，颜色按图片主题色生成。");
+  copyText("把这张图片做成票根，使用默认照片主色细腻哑光纸纹背景，整体克制柔和。");
 });
 
 document.querySelector("#carousel-prev").addEventListener("click", () => stepCarousel(-1));

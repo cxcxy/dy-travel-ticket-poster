@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import colorsys
 import sys
 import tempfile
 import unittest
@@ -22,17 +23,41 @@ from normalize_reference_layout import (  # noqa: E402
 )
 from build_ticket_batch import build_ticket  # noqa: E402
 from adapt_background_plate import adapt_plate, derive_theme_color  # noqa: E402
-from build_subtle_texture_background import build_subtle_background  # noqa: E402
+from build_subtle_texture_background import (  # noqa: E402
+    MAX_LIGHTNESS,
+    MAX_SATURATION,
+    MIN_LIGHTNESS,
+    MIN_SATURATION,
+    build_subtle_background,
+    supporting_color,
+)
 
 
 class StyledBackgroundCompositeTests(unittest.TestCase):
+    def test_default_background_retains_photo_hue_with_softened_saturation(self) -> None:
+        source = (22, 103, 195)
+        selected = supporting_color(source)
+        source_hue, _source_lightness, source_saturation = colorsys.rgb_to_hls(
+            *(channel / 255 for channel in source)
+        )
+        hue, lightness, saturation = colorsys.rgb_to_hls(
+            *(channel / 255 for channel in selected)
+        )
+
+        self.assertAlmostEqual(hue, source_hue, places=2)
+        self.assertGreater(saturation, MIN_SATURATION - 0.01)
+        self.assertLessEqual(saturation, MAX_SATURATION + 0.01)
+        self.assertLess(saturation, source_saturation)
+        self.assertGreaterEqual(lightness, MIN_LIGHTNESS - 0.01)
+        self.assertLessEqual(lightness, MAX_LIGHTNESS + 0.01)
+
     def test_default_background_is_deterministic_near_solid_with_subtle_texture(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             first = root / "first.png"
             second = root / "second.png"
-            build_subtle_background(first, (108, 141, 156), seed=40817, texture_strength=3)
-            build_subtle_background(second, (108, 141, 156), seed=40817, texture_strength=3)
+            build_subtle_background(first, (108, 141, 156), seed=40817, texture_strength=2)
+            build_subtle_background(second, (108, 141, 156), seed=40817, texture_strength=2)
 
             self.assertEqual(first.read_bytes(), second.read_bytes())
             with Image.open(first) as background:
