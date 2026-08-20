@@ -1,5 +1,11 @@
 window.CAROUSEL_ITEMS = [
   {
+    image: "assets/layouts/portrait-reference-linen.webp",
+    kicker: "PORTRAIT NEW",
+    title: "竖版收藏票根",
+    alt: "竖版收藏票根：橄榄绿自然亚麻背景、暖象牙票纸和竖向街景照片",
+  },
+  {
     image: "assets/carousel/autumn-boat-travel-ticket-2026-08.webp",
     kicker: "TICKET 01",
     title: "秋日小舟",

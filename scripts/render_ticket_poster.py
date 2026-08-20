@@ -35,6 +35,15 @@ from palette_utils import (
     parse_hex_color,
     rgb_to_hex,
 )
+from ticket_layouts import (
+    LANDSCAPE,
+    LAYOUT_IDS,
+    PORTRAIT,
+    draw_portrait_perforation,
+    get_layout,
+    make_portrait_ticket_mask,
+    portrait_photo_mask,
+)
 
 
 STUB_TEXT_X = PHOTO_W + 48
@@ -47,6 +56,12 @@ CODE_TOP = 367
 BARCODE_TOP = 420
 BARCODE_H = 43
 BARCODE_MAX_W = STUB_W - 91
+
+PORTRAIT_INFO_PAD = 44
+PORTRAIT_ROW_TOP = 913
+PORTRAIT_BARCODE_TOP = 1012
+PORTRAIT_BARCODE_H = 88
+PORTRAIT_META_TOP = 1120
 
 
 HEAVY_FONT_CANDIDATES = (
@@ -161,6 +176,7 @@ def _prepare_title_lines(
     explicit_lines: list[str] | None,
     draw: ImageDraw.ImageDraw,
     font_path: str,
+    maximum_width: int = TITLE_MAX_W,
 ) -> list[str]:
     if explicit_lines:
         lines = [line.strip() for line in explicit_lines if line.strip()]
@@ -171,7 +187,7 @@ def _prepare_title_lines(
             # Keep a meaningful single word intact whenever it remains legible
             # at the supported minimum title size. Split only as a last resort.
             test_font = _font(font_path, 32)
-            if _text_width(draw, lines[0], test_font) > TITLE_MAX_W:
+            if _text_width(draw, lines[0], test_font) > maximum_width:
                 lines = _split_long_word(lines[0], draw, font_path)
     if not 1 <= len(lines) <= 2:
         raise ValueError("title must resolve to one or two non-empty lines")
@@ -179,11 +195,16 @@ def _prepare_title_lines(
 
 
 def _fit_title_font(
-    lines: list[str], draw: ImageDraw.ImageDraw, font_path: str
+    lines: list[str],
+    draw: ImageDraw.ImageDraw,
+    font_path: str,
+    maximum_width: int = TITLE_MAX_W,
+    preferred_size: int = 64,
+    minimum_size: int = 32,
 ) -> ImageFont.FreeTypeFont:
-    for size in range(64, 31, -1):
+    for size in range(preferred_size, minimum_size - 1, -1):
         candidate = _font(font_path, size)
-        if all(_text_width(draw, line, candidate) <= TITLE_MAX_W for line in lines):
+        if all(_text_width(draw, line, candidate) <= maximum_width for line in lines):
             return candidate
     raise ValueError(
         "title cannot fit the information stub at the minimum size; provide --title-line values"
@@ -303,12 +324,149 @@ def build_stub(
     return stub, identity
 
 
+def build_portrait_ticket_base(
+    title: str | None,
+    title_lines: list[str] | None,
+    date: str,
+    number: str,
+    code: str,
+    stub_color: RGB,
+    text_color: RGB,
+    requested_font: Path | None = None,
+    requested_body_font: Path | None = None,
+) -> tuple[Image.Image, dict[str, str]]:
+    """Build the portrait layout's deterministic paper body and information block."""
+    layout = get_layout(PORTRAIT)
+    ticket = Image.new("RGB", (layout.ticket_w, layout.ticket_h), stub_color)
+    draw = ImageDraw.Draw(ticket)
+    raw_title = " ".join(title_lines or [title or ""])
+    needs_cjk = any(ord(character) > 127 for character in raw_title)
+    title_font_path = _font_path(requested_font, heavy=True, needs_cjk=needs_cjk)
+    body_font_path = _body_font_path(requested_body_font)
+
+    title_max_w = 250
+    normalized_title = " ".join((title or "").strip().split())
+    if title_lines is None and normalized_title:
+        single_line_fits = any(
+            _text_width(draw, normalized_title, _font(title_font_path, size)) <= title_max_w
+            for size in range(43, 24, -1)
+        )
+        lines = (
+            [normalized_title]
+            if single_line_fits
+            else _prepare_title_lines(
+                title,
+                None,
+                draw,
+                title_font_path,
+                maximum_width=title_max_w,
+            )
+        )
+    else:
+        lines = _prepare_title_lines(
+            title,
+            title_lines,
+            draw,
+            title_font_path,
+            maximum_width=title_max_w,
+        )
+    title_font = _fit_title_font(
+        lines,
+        draw,
+        title_font_path,
+        maximum_width=title_max_w,
+        preferred_size=43,
+        minimum_size=25,
+    )
+    number_font = _fit_single_line_font(
+        number,
+        draw,
+        body_font_path,
+        preferred_size=31,
+        minimum_size=24,
+        maximum_width=205,
+    )
+    meta_font = _fit_single_line_font(
+        date,
+        draw,
+        body_font_path,
+        preferred_size=20,
+        minimum_size=16,
+        maximum_width=190,
+    )
+    code_font = _fit_single_line_font(
+        code,
+        draw,
+        body_font_path,
+        preferred_size=20,
+        minimum_size=16,
+        maximum_width=190,
+    )
+
+    _draw_tracked_text(
+        draw,
+        (PORTRAIT_INFO_PAD + 6, PORTRAIT_ROW_TOP + 5),
+        number,
+        number_font,
+        text_color,
+        1,
+    )
+    title_box = draw.textbbox((0, 0), "Ag", font=title_font)
+    title_line_h = title_box[3] - title_box[1] + 3
+    title_top = PORTRAIT_ROW_TOP - (4 if len(lines) == 2 else 0)
+    for index, line in enumerate(lines):
+        line_width = _text_width(draw, line, title_font)
+        draw.text(
+            (layout.ticket_w - PORTRAIT_INFO_PAD - line_width, title_top + index * title_line_h),
+            line,
+            font=title_font,
+            fill=text_color,
+        )
+
+    _draw_barcode(
+        draw,
+        PORTRAIT_INFO_PAD + 22,
+        PORTRAIT_BARCODE_TOP,
+        layout.ticket_w - 2 * (PORTRAIT_INFO_PAD + 22),
+        PORTRAIT_BARCODE_H,
+        text_color,
+        code,
+    )
+    _draw_tracked_text(
+        draw,
+        (PORTRAIT_INFO_PAD + 22, PORTRAIT_META_TOP),
+        date,
+        meta_font,
+        text_color,
+        1,
+    )
+    code_width = sum(_text_width(draw, character, code_font) + 1 for character in code)
+    _draw_tracked_text(
+        draw,
+        (layout.ticket_w - PORTRAIT_INFO_PAD - 22 - code_width, PORTRAIT_META_TOP),
+        code,
+        code_font,
+        text_color,
+        1,
+    )
+    title_font_identity = _font_identity(title_font_path)
+    body_font_identity = _font_identity(body_font_path)
+    identity = {
+        "title_font_name": title_font_identity["name"],
+        "title_font_sha256": title_font_identity["sha256"],
+        "body_font_name": body_font_identity["name"],
+        "body_font_sha256": body_font_identity["sha256"],
+    }
+    return ticket, identity
+
+
 def _load_palette(
     path: Path,
     candidate_id: str,
     source_path: Path,
     photo_center_y: float,
     strip_neutral_borders: bool,
+    layout_id: str,
 ) -> tuple[RGB, RGB, RGB]:
     return load_palette_candidate(
         path,
@@ -316,6 +474,7 @@ def _load_palette(
         source_path,
         photo_center_y,
         strip_neutral_borders,
+        layout_id,
     )
 
 
@@ -336,27 +495,17 @@ def render(
     requested_body_font: Path | None = None,
     background_image_path: Path | None = None,
     shadow_preset: str | None = None,
+    layout_id: str = LANDSCAPE,
 ) -> dict[str, str]:
     if output_path.exists():
         raise FileExistsError(f"output already exists: {output_path}")
+    layout = get_layout(layout_id)
     source = open_prepared_source(photo_source_path, strip_neutral_borders)
     photo = ImageOps.fit(
         source,
-        (PHOTO_W, TICKET_H),
+        (layout.photo_w, layout.photo_h),
         method=Image.Resampling.LANCZOS,
         centering=(0.5, photo_center_y),
-    )
-
-    stub, font_identity = build_stub(
-        title,
-        title_lines,
-        date,
-        number,
-        code,
-        stub_color,
-        text_color,
-        requested_font,
-        requested_body_font,
     )
     if (background_color is None) == (background_image_path is None):
         raise ValueError("provide exactly one background color or background image")
@@ -367,17 +516,60 @@ def render(
     )
     canvas_color = background_color or background.getpixel((0, 0))
 
-    ticket = Image.new("RGB", (TICKET_W, TICKET_H), stub_color)
-    ticket.paste(photo, (0, 0))
-    ticket.paste(stub, (PHOTO_W, 0))
-    draw_single_perforation(ticket, canvas_color)
+    if layout_id == LANDSCAPE:
+        stub, font_identity = build_stub(
+            title,
+            title_lines,
+            date,
+            number,
+            code,
+            stub_color,
+            text_color,
+            requested_font,
+            requested_body_font,
+        )
+        ticket = Image.new("RGB", (layout.ticket_w, layout.ticket_h), stub_color)
+        ticket.paste(photo, (layout.photo_x, layout.photo_y))
+        ticket.paste(stub, (PHOTO_W, 0))
+        draw_single_perforation(ticket, canvas_color)
+        mask = make_ticket_mask()
+    else:
+        ticket, font_identity = build_portrait_ticket_base(
+            title,
+            title_lines,
+            date,
+            number,
+            code,
+            stub_color,
+            text_color,
+            requested_font,
+            requested_body_font,
+        )
+        ticket.paste(
+            photo,
+            (layout.photo_x, layout.photo_y),
+            portrait_photo_mask(layout),
+        )
+        draw_portrait_perforation(ticket, canvas_color, layout)
+        mask = make_portrait_ticket_mask(layout)
 
-    mask = make_ticket_mask()
-    apply_ticket_shadow(background, mask, canvas_color, shadow_preset)
-    background.paste(ticket, (TICKET_X, TICKET_Y), mask)
+    apply_ticket_shadow(
+        background,
+        mask,
+        canvas_color,
+        shadow_preset,
+        (layout.ticket_x, layout.ticket_y),
+    )
+    background.paste(ticket, (layout.ticket_x, layout.ticket_y), mask)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     metadata = {
-        "dy_ticket_renderer": "1",
+        "dy_ticket_renderer": "2",
+        "dy_ticket_layout": layout_id,
+        "dy_ticket_background_source": "image" if background_image_path else "color",
+        "dy_ticket_background_image_sha256": (
+            file_sha256(background_image_path) if background_image_path else ""
+        ),
+        "dy_ticket_shadow_preset": shadow_preset or "default",
         "dy_ticket_source_sha256": file_sha256(photo_source_path),
         "dy_ticket_photo_center_y": f"{photo_center_y:.9f}",
         "dy_ticket_strip_neutral_borders": "1" if strip_neutral_borders else "0",
@@ -419,8 +611,15 @@ def main() -> None:
     parser.add_argument("--palette-json", type=Path)
     parser.add_argument("--palette-candidate", default="quiet-light")
     parser.add_argument("--background-color", type=parse_canvas_color)
+    parser.add_argument(
+        "--background-image",
+        type=Path,
+        help="Exact 1170x1560 background-only plate from any supported background style",
+    )
     parser.add_argument("--stub-color", type=parse_hex_color)
     parser.add_argument("--text-color", type=parse_hex_color)
+    parser.add_argument("--layout", choices=LAYOUT_IDS, default=LANDSCAPE)
+    parser.add_argument("--shadow-preset")
     parser.add_argument("--photo-center-y", type=float, default=0.5)
     parser.add_argument("--font", type=Path)
     parser.add_argument(
@@ -441,6 +640,10 @@ def main() -> None:
         parser.error("--photo-center-y must be between 0 and 1")
     if args.title_lines and len(args.title_lines) > 2:
         parser.error("pass --title-line once or twice")
+    if args.background_color is not None and args.background_image is not None:
+        parser.error("provide only one of --background-color or --background-image")
+    if args.background_image is not None and not args.background_image.is_file():
+        parser.error(f"background image does not exist: {args.background_image}")
     if not re.fullmatch(r"\d{4} - \d{2}", args.date):
         parser.error('--date must use the exact format "YYYY - MM"')
     number = args.number.upper()
@@ -460,13 +663,22 @@ def main() -> None:
             args.photo_source,
             args.photo_center_y,
             not args.keep_neutral_borders,
+            args.layout,
         )
-    background = args.background_color or (palette_colors[0] if palette_colors else None)
+    background = (
+        None
+        if args.background_image is not None
+        else args.background_color or (palette_colors[0] if palette_colors else None)
+    )
     stub = args.stub_color or (palette_colors[1] if palette_colors else None)
     text_color = args.text_color or (palette_colors[2] if palette_colors else None)
-    if not all((background, stub, text_color)):
+    if (background is None) == (args.background_image is None):
         parser.error(
-            "provide --palette-json or all of --background-color, --stub-color and --text-color"
+            "provide a background through --palette-json, --background-color or --background-image"
+        )
+    if not all((stub, text_color)):
+        parser.error(
+            "provide --palette-json or both --stub-color and --text-color"
         )
 
     metadata = render(
@@ -484,14 +696,19 @@ def main() -> None:
         requested_font=args.font,
         strip_neutral_borders=not args.keep_neutral_borders,
         requested_body_font=args.body_font,
+        background_image_path=args.background_image,
+        shadow_preset=args.shadow_preset,
+        layout_id=args.layout,
     )
     print(
         json.dumps(
             {
                 "output": str(args.output.resolve()),
-                "background": rgb_to_hex(background),
+                "background": metadata["dy_ticket_background"],
+                "background_image": str(args.background_image.resolve()) if args.background_image else None,
                 "stub": rgb_to_hex(stub),
                 "text": rgb_to_hex(text_color),
+                "layout": args.layout,
                 "title_font": metadata["dy_ticket_title_font_name"],
                 "title_font_sha256": metadata["dy_ticket_title_font_sha256"],
                 "body_font": metadata["dy_ticket_body_font_name"],

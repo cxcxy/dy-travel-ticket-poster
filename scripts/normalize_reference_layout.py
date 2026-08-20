@@ -123,6 +123,7 @@ def apply_ticket_shadow(
     mask: Image.Image,
     background_color: tuple[int, int, int] | None = None,
     shadow_preset: str | None = None,
+    ticket_position: tuple[int, int] = (TICKET_X, TICKET_Y),
 ) -> None:
     """Render a grounded two-stage shadow without creating a second card edge."""
     if background_color is None:
@@ -153,7 +154,10 @@ def apply_ticket_shadow(
         )
     for offset, blur, opacity in layers:
         shadow_mask = Image.new("L", CANVAS_SIZE, 0)
-        shadow_mask.paste(mask, (TICKET_X + offset[0], TICKET_Y + offset[1]))
+        shadow_mask.paste(
+            mask,
+            (ticket_position[0] + offset[0], ticket_position[1] + offset[1]),
+        )
         shadow_mask = shadow_mask.filter(ImageFilter.GaussianBlur(blur))
         shadow = Image.new("RGB", CANVAS_SIZE, shadow_color)
         background.paste(
@@ -236,7 +240,7 @@ def normalize(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.exists():
         raise FileExistsError(f"output already exists: {output_path}")
-    if photo_source_path is not None and metadata.get("dy_ticket_renderer") == "1":
+    if photo_source_path is not None and metadata.get("dy_ticket_renderer") in {"1", "2"}:
         metadata["dy_ticket_source_sha256"] = file_sha256(photo_source_path)
         metadata["dy_ticket_photo_center_y"] = f"{photo_center_y:.9f}"
         metadata["dy_ticket_strip_neutral_borders"] = (

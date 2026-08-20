@@ -136,7 +136,7 @@ function setCarouselPaused(paused) {
 
 function initializeCarousel() {
   carouselItems = Array.isArray(window.CAROUSEL_ITEMS) ? window.CAROUSEL_ITEMS : [];
-  if (carouselItems.length !== 15) throw new Error(`预期 15 张轮播素材，实际 ${carouselItems.length} 张`);
+  if (!carouselItems.length) throw new Error("没有可用的轮播素材");
   carousel.setAttribute("aria-label", `票根成品轮播，共 ${carouselItems.length} 张`);
   carouselTrack.innerHTML = carouselItems.map(carouselItemTemplate).join("");
   updateCarousel(0);
@@ -215,7 +215,7 @@ filters.forEach((button) => {
 });
 
 document.querySelector("#copy-default").addEventListener("click", () => {
-  copyText("把这张图片做成票根，使用默认照片主色细腻哑光纸纹背景，整体克制柔和。");
+  copyText("把这张图片做成旅行票根；请根据照片方向选择横版或竖版，背景使用对应的默认风格。");
 });
 
 document.querySelector("#carousel-prev").addEventListener("click", () => stepCarousel(-1));

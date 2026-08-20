@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import re
 
-from PIL import Image, ImageChops, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageOps
 
 from image_utils import open_prepared_source
 
@@ -27,6 +27,7 @@ from normalize_reference_layout import (
     apply_ticket_shadow,
     build_background,
     draw_single_perforation,
+    load_background_image,
     make_ticket_mask,
 )
 from palette_utils import (
@@ -39,23 +40,77 @@ from palette_utils import (
     rgb_to_hex,
     rgb_to_oklch,
 )
-from render_ticket_poster import build_stub
+from render_ticket_poster import build_portrait_ticket_base, build_stub
+from ticket_layouts import (
+    LANDSCAPE,
+    LAYOUT_IDS,
+    PORTRAIT,
+    draw_portrait_perforation,
+    get_layout,
+    make_portrait_ticket_mask,
+)
 
 
-def _validate_background(output: Image.Image, expected_color: RGB) -> None:
-    ticket_mask = make_ticket_mask()
+def _validate_background(
+    output: Image.Image,
+    expected_color: RGB,
+    layout_id: str,
+    shadow_preset: str | None = None,
+) -> None:
+    layout = get_layout(layout_id)
+    ticket_mask = (
+        make_ticket_mask()
+        if layout_id == LANDSCAPE
+        else make_portrait_ticket_mask(layout)
+    )
     expected = build_background(expected_color)
-    apply_ticket_shadow(expected, ticket_mask, expected_color)
+    apply_ticket_shadow(
+        expected,
+        ticket_mask,
+        expected_color,
+        shadow_preset,
+        ticket_position=(layout.ticket_x, layout.ticket_y),
+    )
     difference = ImageChops.difference(output, expected)
     # Ticket pixels may contain the photograph, stub and type. Every pixel
     # outside that exact silhouette must equal the canonical flat canvas plus
     # palette-aware shadow, including the narrow left/right gutters.
-    difference.paste((0, 0, 0), (TICKET_X, TICKET_Y), ticket_mask)
+    difference.paste((0, 0, 0), (layout.ticket_x, layout.ticket_y), ticket_mask)
     if difference.getbbox() is not None:
         raise ValueError(
             "canvas background or shadow differs from the expected solid-color construction "
             f"{rgb_to_hex(expected_color)}"
         )
+
+
+def _validate_background_image(
+    output: Image.Image,
+    expected_path: Path,
+    layout_id: str,
+    shadow_preset: str | None,
+) -> RGB:
+    layout = get_layout(layout_id)
+    ticket_mask = (
+        make_ticket_mask()
+        if layout_id == LANDSCAPE
+        else make_portrait_ticket_mask(layout)
+    )
+    expected = load_background_image(expected_path)
+    canvas_color = expected.getpixel((0, 0))
+    apply_ticket_shadow(
+        expected,
+        ticket_mask,
+        canvas_color,
+        shadow_preset,
+        (layout.ticket_x, layout.ticket_y),
+    )
+    difference = ImageChops.difference(output, expected)
+    difference.paste((0, 0, 0), (layout.ticket_x, layout.ticket_y), ticket_mask)
+    if difference.getbbox() is not None:
+        raise ValueError(
+            "canvas background or shadow differs from the expected background image"
+        )
+    return canvas_color
 
 
 def _validate_stub_exact(
@@ -71,6 +126,7 @@ def _validate_stub_exact(
     expected_date: str | None = None,
     expected_number: str | None = None,
     expected_code: str | None = None,
+    layout_id: str = LANDSCAPE,
 ) -> None:
     required = (
         "dy_ticket_title",
@@ -94,7 +150,7 @@ def _validate_stub_exact(
     title_lines = (
         expected_title_lines
         if expected_title_lines is not None
-        else recorded_title_lines
+        else recorded_title_lines or None
     )
     title = (
         expected_title
@@ -145,17 +201,31 @@ def _validate_stub_exact(
         raise ValueError(
             "cannot reconstruct the exact stub because its recorded font file is unavailable"
         )
-    expected_stub, identity = build_stub(
-        title,
-        title_lines,
-        date,
-        number,
-        code,
-        stub,
-        text,
-        title_font_path,
-        body_font_path,
-    )
+    layout = get_layout(layout_id)
+    if layout_id == LANDSCAPE:
+        expected_stub, identity = build_stub(
+            title,
+            title_lines,
+            date,
+            number,
+            code,
+            stub,
+            text,
+            title_font_path,
+            body_font_path,
+        )
+    else:
+        expected_ticket, identity = build_portrait_ticket_base(
+            title,
+            title_lines,
+            date,
+            number,
+            code,
+            stub,
+            text,
+            title_font_path,
+            body_font_path,
+        )
     if identity["title_font_sha256"] != metadata["dy_ticket_title_font_sha256"]:
         raise ValueError("title font identity changed during exact-stub reconstruction")
     if identity["body_font_sha256"] != metadata["dy_ticket_body_font_sha256"]:
@@ -165,21 +235,44 @@ def _validate_stub_exact(
     if identity["body_font_name"] != metadata["dy_ticket_body_font_name"]:
         raise ValueError("body font name does not match its recorded file identity")
 
-    expected_ticket = Image.new("RGB", (TICKET_W, TICKET_H), stub)
-    expected_ticket.paste(expected_stub, (PHOTO_W, 0))
-    draw_single_perforation(expected_ticket, perforation)
-    expected_stub = expected_ticket.crop((PHOTO_W, 0, TICKET_W, TICKET_H))
-    actual_stub = output.crop(
-        (
-            TICKET_X + PHOTO_W,
-            TICKET_Y,
-            TICKET_X + TICKET_W,
-            TICKET_Y + TICKET_H,
+    if layout_id == LANDSCAPE:
+        expected_ticket = Image.new("RGB", (TICKET_W, TICKET_H), stub)
+        expected_ticket.paste(expected_stub, (PHOTO_W, 0))
+        draw_single_perforation(expected_ticket, perforation)
+        expected_stub = expected_ticket.crop((PHOTO_W, 0, TICKET_W, TICKET_H))
+        actual_stub = output.crop(
+            (
+                TICKET_X + PHOTO_W,
+                TICKET_Y,
+                TICKET_X + TICKET_W,
+                TICKET_Y + TICKET_H,
+            )
         )
-    )
+        ticket_mask = make_ticket_mask().crop((PHOTO_W, 0, TICKET_W, TICKET_H))
+    else:
+        draw_portrait_perforation(expected_ticket, perforation, layout)
+        actual_stub = output.crop(
+            (
+                layout.ticket_x,
+                layout.ticket_y,
+                layout.ticket_x + layout.ticket_w,
+                layout.ticket_y + layout.ticket_h,
+            )
+        )
+        expected_stub = expected_ticket
+        ticket_mask = make_portrait_ticket_mask(layout)
+        # The photograph is validated independently against source pixels.
+        ImageDraw.Draw(ticket_mask).rectangle(
+            (
+                layout.photo_x,
+                layout.photo_y,
+                layout.photo_x + layout.photo_w - 1,
+                layout.photo_y + layout.photo_h - 1,
+            ),
+            fill=0,
+        )
     # Every visible stub pixel, including the perforation and edge pixels, must
     # be byte-for-byte identical to deterministic reconstruction.
-    ticket_mask = make_ticket_mask().crop((PHOTO_W, 0, TICKET_W, TICKET_H))
     difference = ImageChops.difference(actual_stub, expected_stub)
     zero = Image.new("RGB", difference.size, (0, 0, 0))
     checked = Image.composite(difference, zero, ticket_mask)
@@ -200,6 +293,9 @@ def _validate_renderer_metadata(
     expected_date: str,
     expected_number: str,
     expected_code: str,
+    layout_id: str,
+    expected_background_image: Path | None,
+    shadow_preset: str | None,
 ) -> None:
     required = {
         "dy_ticket_renderer",
@@ -218,8 +314,32 @@ def _validate_renderer_metadata(
     missing = sorted(required.difference(metadata))
     if missing:
         raise ValueError(f"missing deterministic renderer metadata: {', '.join(missing)}")
-    if metadata["dy_ticket_renderer"] != "1":
+    if metadata["dy_ticket_renderer"] not in {"1", "2"}:
         raise ValueError("unsupported deterministic renderer metadata version")
+    recorded_layout = metadata.get("dy_ticket_layout", LANDSCAPE)
+    if recorded_layout != layout_id:
+        raise ValueError("embedded layout does not match --layout")
+    if metadata["dy_ticket_renderer"] == "2" and "dy_ticket_layout" not in metadata:
+        raise ValueError("renderer metadata version 2 requires an embedded layout")
+    if metadata["dy_ticket_renderer"] == "2":
+        for key in (
+            "dy_ticket_background_source",
+            "dy_ticket_background_image_sha256",
+            "dy_ticket_shadow_preset",
+        ):
+            if key not in metadata:
+                raise ValueError(f"renderer metadata version 2 requires {key}")
+    expected_background_source = "image" if expected_background_image else "color"
+    if metadata.get("dy_ticket_background_source", "color") != expected_background_source:
+        raise ValueError("embedded background source does not match validation input")
+    if expected_background_image is not None:
+        if metadata.get("dy_ticket_background_image_sha256") != file_sha256(
+            expected_background_image
+        ):
+            raise ValueError("embedded background image hash does not match validation input")
+    recorded_shadow = metadata.get("dy_ticket_shadow_preset", "default")
+    if recorded_shadow != (shadow_preset or "default"):
+        raise ValueError("embedded shadow preset does not match validation input")
     if metadata["dy_ticket_source_sha256"] != file_sha256(source_path):
         raise ValueError("embedded source hash does not match --photo-source")
     if abs(float(metadata["dy_ticket_photo_center_y"]) - photo_center_y) > 1e-9:
@@ -374,7 +494,11 @@ def validate(
     expected_number: str | None = None,
     expected_code: str | None = None,
     body_font_path: Path | None = None,
+    layout_id: str = LANDSCAPE,
+    expected_background_image: Path | None = None,
+    shadow_preset: str | None = None,
 ) -> list[str]:
+    layout = get_layout(layout_id)
     with Image.open(output_path) as opened:
         if opened.format != "PNG" or output_path.suffix.lower() != ".png":
             raise ValueError("final output must be a PNG file with a .png extension")
@@ -388,13 +512,14 @@ def validate(
         raise ValueError(f"expected {CANVAS_SIZE}, got {output.size}")
     strict_text_contract = None
     if require_renderer_metadata:
-        if any(
-            color is None
-            for color in (expected_background, expected_stub, expected_text)
+        if expected_background_image is None and any(
+            color is None for color in (expected_background, expected_stub, expected_text)
         ):
-            raise ValueError(
-                "strict validation requires background, stub and text colors"
-            )
+            raise ValueError("strict validation requires background, stub and text colors")
+        if expected_background_image is not None and (
+            expected_stub is None or expected_text is None
+        ):
+            raise ValueError("strict validation requires stub and text colors")
         strict_text_contract = _normalize_external_text_contract(
             expected_title,
             expected_title_lines,
@@ -402,8 +527,17 @@ def validate(
             expected_number,
             expected_code,
         )
-    if expected_background is not None:
-        _validate_background(output, expected_background)
+    if expected_background is not None and expected_background_image is not None:
+        raise ValueError("validate against only one background color or background image")
+    if expected_background_image is not None:
+        expected_background = _validate_background_image(
+            output,
+            expected_background_image,
+            layout_id,
+            shadow_preset,
+        )
+    elif expected_background is not None:
+        _validate_background(output, expected_background, layout_id, shadow_preset)
     if require_renderer_metadata:
         assert strict_text_contract is not None
         _validate_renderer_metadata(
@@ -415,77 +549,116 @@ def validate(
             expected_text,
             strip_neutral_borders,
             *strict_text_contract,
+            layout_id,
+            expected_background_image,
+            shadow_preset,
         )
 
     source = open_prepared_source(source_path, strip_neutral_borders)
     expected = ImageOps.fit(
         source,
-        (PHOTO_W, TICKET_H),
+        (layout.photo_w, layout.photo_h),
         method=Image.Resampling.LANCZOS,
         centering=(0.5, photo_center_y),
     )
     actual = output.crop(
-        (TICKET_X, TICKET_Y, TICKET_X + PHOTO_W, TICKET_Y + TICKET_H)
+        (
+            layout.ticket_x + layout.photo_x,
+            layout.ticket_y + layout.photo_y,
+            layout.ticket_x + layout.photo_x + layout.photo_w,
+            layout.ticket_y + layout.photo_y + layout.photo_h,
+        )
     )
-    safe_expected = expected.crop((16, 16, PHOTO_W - 9, TICKET_H - 16))
-    safe_actual = actual.crop((16, 16, PHOTO_W - 9, TICKET_H - 16))
+    safe_expected = expected.crop(
+        (16, 16, layout.photo_w - 16, layout.photo_h - 16)
+    )
+    safe_actual = actual.crop(
+        (16, 16, layout.photo_w - 16, layout.photo_h - 16)
+    )
     if ImageChops.difference(safe_expected, safe_actual).getbbox() is not None:
         raise ValueError("photo panel does not match the aspect-preserving source crop")
 
-    split_x = TICKET_X + PHOTO_W
-    x1 = split_x - PERFORATION_W // 2
-    x2 = x1 + PERFORATION_W
     perforation_color = expected_perforation or expected_background or PERFORATION_COLOR
-    step = PERFORATION_DASH_H + PERFORATION_GAP
-    expected_rows = {
-        y
-        for start in range(0, TICKET_H, step)
-        for y in range(start, min(start + PERFORATION_DASH_H, TICKET_H))
-    }
-    for local_y in range(TICKET_H):
-        row = [output.getpixel((x, TICKET_Y + local_y)) for x in range(x1, x2)]
-        should_be_dash = local_y in expected_rows
-        if should_be_dash and any(pixel != perforation_color for pixel in row):
-            raise ValueError(f"perforation dash mismatch at local y={local_y}")
-        if not should_be_dash and all(pixel == perforation_color for pixel in row):
-            raise ValueError(f"unexpected perforation color in gap at local y={local_y}")
+    if layout_id == LANDSCAPE:
+        split_x = TICKET_X + PHOTO_W
+        x1 = split_x - PERFORATION_W // 2
+        x2 = x1 + PERFORATION_W
+        step = PERFORATION_DASH_H + PERFORATION_GAP
+        expected_rows = {
+            y
+            for start in range(0, TICKET_H, step)
+            for y in range(start, min(start + PERFORATION_DASH_H, TICKET_H))
+        }
+        for local_y in range(TICKET_H):
+            row = [output.getpixel((x, TICKET_Y + local_y)) for x in range(x1, x2)]
+            should_be_dash = local_y in expected_rows
+            if should_be_dash and any(pixel != perforation_color for pixel in row):
+                raise ValueError(f"perforation dash mismatch at local y={local_y}")
+            if not should_be_dash and all(pixel == perforation_color for pixel in row):
+                raise ValueError(f"unexpected perforation color in gap at local y={local_y}")
 
-    top_row = [output.getpixel((x, TICKET_Y)) for x in range(x1, x2)]
-    if any(pixel != perforation_color for pixel in top_row):
-        raise ValueError("top perforation dash must start flush and square at ticket y=0")
+        top_row = [output.getpixel((x, TICKET_Y)) for x in range(x1, x2)]
+        if any(pixel != perforation_color for pixel in top_row):
+            raise ValueError("top perforation dash must start flush and square at ticket y=0")
 
-    # The normalized stub reserves a flat guard band immediately to the right of
-    # the canonical divider. Any variation here indicates a second generated
-    # perforation, bright seam, border, or divider shadow survived cleanup.
-    guard_x1 = x2
-    guard_x2 = split_x + PERFORATION_GUARD_W
-    guard = output.crop(
-        (guard_x1, TICKET_Y, guard_x2, TICKET_Y + TICKET_H)
-    )
-    extrema = guard.getextrema()
-    if any(low != high for low, high in extrema):
-        raise ValueError(
-            "stub guard band is not flat; possible second perforation or seam"
-        )
-    if expected_stub is not None:
-        expected_extrema = tuple(
-            value for channel in expected_stub for value in (channel, channel)
-        )
-        flattened_extrema = tuple(value for channel in extrema for value in channel)
-        if flattened_extrema != expected_extrema:
+        guard_x1 = x2
+        guard_x2 = split_x + PERFORATION_GUARD_W
+        guard = output.crop((guard_x1, TICKET_Y, guard_x2, TICKET_Y + TICKET_H))
+        extrema = guard.getextrema()
+        if any(low != high for low, high in extrema):
             raise ValueError(
-                "stub guard band does not match expected color "
-                f"{rgb_to_hex(expected_stub)}"
+                "stub guard band is not flat; possible second perforation or seam"
             )
-    if expected_text is not None:
-        text_region = output.crop(
+        if expected_stub is not None:
+            expected_extrema = tuple(
+                value for channel in expected_stub for value in (channel, channel)
+            )
+            flattened_extrema = tuple(value for channel in extrema for value in channel)
+            if flattened_extrema != expected_extrema:
+                raise ValueError(
+                    "stub guard band does not match expected color "
+                    f"{rgb_to_hex(expected_stub)}"
+                )
+        text_region_box = (
+            split_x + PERFORATION_GUARD_W + 4,
+            TICKET_Y,
+            TICKET_X + TICKET_W,
+            TICKET_Y + TICKET_H,
+        )
+    else:
+        expected_line = Image.new("RGB", (layout.ticket_w, layout.ticket_h), expected_stub or (0, 0, 0))
+        draw_portrait_perforation(expected_line, perforation_color, layout)
+        actual_ticket = output.crop(
             (
-                split_x + PERFORATION_GUARD_W + 4,
-                TICKET_Y,
-                TICKET_X + TICKET_W,
-                TICKET_Y + TICKET_H,
+                layout.ticket_x,
+                layout.ticket_y,
+                layout.ticket_x + layout.ticket_w,
+                layout.ticket_y + layout.ticket_h,
             )
         )
+        band_y1 = layout.divider_position - 2
+        band_y2 = layout.divider_position + 2
+        expected_band = expected_line.crop((0, band_y1, layout.ticket_w, band_y2))
+        actual_band = actual_ticket.crop((0, band_y1, layout.ticket_w, band_y2))
+        band_mask = make_portrait_ticket_mask(layout).crop(
+            (0, band_y1, layout.ticket_w, band_y2)
+        )
+        difference = ImageChops.difference(actual_band, expected_band)
+        checked = Image.composite(
+            difference,
+            Image.new("RGB", difference.size, (0, 0, 0)),
+            band_mask,
+        )
+        if checked.getbbox() is not None:
+            raise ValueError("portrait perforation does not match the deterministic horizontal divider")
+        text_region_box = (
+            layout.ticket_x,
+            layout.ticket_y + layout.divider_position + 20,
+            layout.ticket_x + layout.ticket_w,
+            layout.ticket_y + layout.ticket_h,
+        )
+    if expected_text is not None:
+        text_region = output.crop(text_region_box)
         exact_text_pixels = sum(
             1 for pixel in text_region.getdata() if pixel == expected_text
         )
@@ -513,6 +686,7 @@ def validate(
             strict_date,
             strict_number,
             strict_code,
+            layout_id,
         )
 
     return _validate_palette(
@@ -528,7 +702,10 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--photo-source", type=Path, required=True)
     parser.add_argument("--photo-center-y", type=float, default=0.5)
+    parser.add_argument("--layout", choices=LAYOUT_IDS, default=LANDSCAPE)
     parser.add_argument("--expected-background-color", type=parse_hex_color)
+    parser.add_argument("--expected-background-image", type=Path)
+    parser.add_argument("--shadow-preset")
     parser.add_argument("--expected-stub-color", type=parse_hex_color)
     parser.add_argument("--expected-text-color", type=parse_hex_color)
     parser.add_argument("--expected-perforation-color", type=parse_hex_color)
@@ -570,8 +747,10 @@ def main() -> None:
             args.photo_source,
             args.photo_center_y,
             not args.keep_neutral_borders,
+            args.layout,
         )
-        expected_background = expected_background or palette_background
+        if args.expected_background_image is None:
+            expected_background = expected_background or palette_background
         expected_stub = expected_stub or palette_stub
         expected_text = expected_text or palette_text
     warnings = validate(
@@ -592,6 +771,9 @@ def main() -> None:
         expected_number=args.expected_number,
         expected_code=args.expected_code,
         body_font_path=args.body_font,
+        layout_id=args.layout,
+        expected_background_image=args.expected_background_image,
+        shadow_preset=args.shadow_preset,
     )
     for warning in warnings:
         print(f"WARN: {warning}")

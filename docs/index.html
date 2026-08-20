@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#eee7dc">
     <meta
       name="description"
-      content="DY 旅行票根海报 Skill：上传图片即可按默认风格制作，也可以按需选择 12 种背景风格。"
+      content="DY 旅行票根海报 Skill：支持横版与竖版两种票根构图，并可组合照片主色、参考亚麻和 12 种背景风格。"
     >
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23171714'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Arial' font-weight='800' font-size='26' fill='white'%3EDY%3C/text%3E%3C/svg%3E">
-    <title>DY 旅行票根 · 12 风格预览</title>
-    <link rel="stylesheet" href="styles.css?v=20260815-layout2">
+    <title>DY 旅行票根 · 2 种构图与 12 种风格</title>
+    <link rel="stylesheet" href="styles.css?v=20260820-portrait1">
   </head>
   <body>
     <a class="skip-link" href="#cases">跳到参考案例</a>
@@ -19,11 +19,12 @@
         <span class="brand-mark" aria-hidden="true">DY</span>
         <span>
           <strong>旅行票根海报</strong>
-          <small>12 STYLE GALLERY</small>
+          <small>2 LAYOUTS · 12 STYLES</small>
         </span>
       </a>
       <nav aria-label="主导航">
         <a href="#cases">参考案例</a>
+        <a href="#layouts">两种构图</a>
         <a href="#default">能做什么</a>
         <a href="#gallery">12 种风格</a>
         <a href="#update">本次更新</a>
@@ -38,7 +39,7 @@
           <p class="eyebrow">参考案例 / REFERENCE CASES</p>
           <h2 id="cases-title">先看成品，喜欢再选风格。</h2>
           <p>
-            这里放入真实票根成品，按原始 <strong>3:4</strong> 比例轮播展示。默认风格就能直接制作，想换感觉时再进入 12 种背景风格。
+            这里放入真实票根成品，按原始 <strong>3:4</strong> 比例轮播展示。现在既有横向照片票根，也有竖向照片收藏票根；两种构图都能继续组合 12 种背景。
           </p>
         </div>
         <figure
@@ -46,7 +47,7 @@
           id="hero-carousel"
           role="region"
           aria-roledescription="carousel"
-          aria-label="票根成品轮播，共 15 张"
+          aria-label="票根成品轮播，共 16 张"
           tabindex="0"
         >
           <div class="carousel-viewport">
@@ -64,36 +65,72 @@
                 <svg class="carousel-icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
                 <svg class="carousel-icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg>
               </button>
-              <span id="carousel-counter" aria-live="polite">01 / 15</span>
+              <span id="carousel-counter" aria-live="polite">01 / 16</span>
               <button id="carousel-next" type="button" aria-label="下一张素材">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
               </button>
             </div>
           </div>
           <figcaption class="carousel-caption">
-            <span id="carousel-kicker">TICKET 01 · 01 / 15</span>
-            <strong id="carousel-title">秋日小舟</strong>
+            <span id="carousel-kicker">PORTRAIT NEW · 01 / 16</span>
+            <strong id="carousel-title">竖版收藏票根</strong>
           </figcaption>
         </figure>
+      </section>
+
+      <section class="layout-showcase shell" id="layouts" aria-labelledby="layouts-title">
+        <div class="section-heading layout-heading">
+          <p class="eyebrow">两种构图 / TWO LAYOUTS</p>
+          <h2 id="layouts-title">背景可以换，构图也可以选。</h2>
+          <p>排版与背景彼此独立：先按照片方向选择横版或竖版，再使用默认背景、照片主色、统一色系或任意一种背景风格。</p>
+        </div>
+        <div class="layout-grid">
+          <article class="layout-card">
+            <div class="layout-media">
+              <img src="assets/default-subtle-texture.webp" width="585" height="780" alt="横版旅行票根默认效果：横向照片在左，信息联在右">
+              <span>LANDSCAPE · DEFAULT</span>
+            </div>
+            <div class="layout-card-copy">
+              <div>
+                <h3>原有横版票根</h3>
+                <p>适合横向场景、合影与建筑全景；默认使用照片主色细腻哑光纸纹。</p>
+              </div>
+              <button type="button" data-copy="把这张图片做成横版旅行票根，背景按默认照片主色纸纹。">复制横版调用</button>
+            </div>
+          </article>
+          <article class="layout-card layout-card-portrait">
+            <div class="layout-media">
+              <img src="assets/layouts/portrait-reference-linen.webp" width="750" height="1000" alt="竖版收藏票根默认效果：竖向照片在上，信息和条码在下">
+              <span>PORTRAIT · NEW</span>
+            </div>
+            <div class="layout-card-copy">
+              <div>
+                <h3>竖版收藏票根</h3>
+                <p>适合竖向街景、建筑和人像；默认使用橄榄绿亚麻、暖象牙票纸与近黑油墨。</p>
+              </div>
+              <button type="button" data-copy="把这张图片做成竖版收藏票根，使用参考图的橄榄绿亚麻背景和暖象牙票纸。">复制竖版调用</button>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section class="hero capabilities shell" id="default" aria-labelledby="capabilities-title">
         <div class="hero-copy">
           <p class="eyebrow">能做什么 / WHAT IT DOES</p>
-          <h1 id="capabilities-title">不选风格，也有干净的默认答案。</h1>
+          <h1 id="capabilities-title">先选构图，再决定要不要换背景。</h1>
           <p class="hero-intro">
-            上传照片即可直接制作；默认按照片主色生成克制柔和的细腻哑光纸纹背景，想换感觉时再选择其他风格。
+            横版默认跟随照片主色，竖版默认使用参考图的橄榄绿自然亚麻与暖象牙票纸；两种构图都支持下方 12 种背景风格。
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="#gallery">查看 12 种效果</a>
             <button class="button button-secondary" id="copy-default" type="button">
-              复制默认调用语句
+              复制智能构图调用
             </button>
           </div>
           <dl class="hero-stats" aria-label="核心规格">
-            <div><dt>12</dt><dd>锁定风格</dd></div>
+            <div><dt>2</dt><dd>票根构图</dd></div>
+            <div><dt>12</dt><dd>背景风格</dd></div>
             <div><dt>3:4</dt><dd>标准画布</dd></div>
-            <div><dt>STRICT</dt><dd>主体保护</dd></div>
           </dl>
         </div>
       </section>
@@ -132,25 +169,25 @@
 
       <section class="update shell" id="update">
         <div class="section-heading">
-          <time class="update-date" datetime="2026-08-15">2026.08.15</time>
-          <h2>默认先用，想换再选。</h2>
+          <time class="update-date" datetime="2026-08-20">2026.08.20</time>
+          <h2>新增竖版收藏票根。</h2>
         </div>
         <div class="update-grid">
           <article>
-            <h3>默认主色细腻纸纹</h3>
-            <p>未指定风格时逐图取照片主色，收至克制柔和的饱和度，细腻哑光纸纹严格约束在基色 ±2。</p>
+            <h3>两种构图独立选择</h3>
+            <p>横版保留“照片在左、信息在右”；竖版采用“照片在上、信息与大条码在下”。背景选择不会改变票根几何。</p>
           </article>
           <article>
-            <h3>12 风格按需启用</h3>
-            <p>默认风格不需要选择；想换成亚麻、艺术纸、灰泥或洞石等效果时，再指定序号或名称。</p>
+            <h3>参考图默认配色</h3>
+            <p>竖版默认锁定灰橄榄绿背景、暖象牙票纸和近黑文字，避免照片取色把票根变成沉重的深色卡片。</p>
           </article>
           <article>
-            <h3>每张照片独立配色</h3>
-            <p>批量任务默认逐张适配主题色；只有明确要求“统一色系”时才共享同一颜色。</p>
+            <h3>自然亚麻织物</h3>
+            <p>约 4–5px 的轻微不等距纱线带有高光、暗槽与自然起伏，不使用机械重复的电子网格。</p>
           </article>
           <article>
-            <h3>原图像素回填</h3>
-            <p>照片区由原始文件等比例裁切与高质量缩放，不让生成模型重画、压扁或改动主体。</p>
+            <h3>全部背景继续支持</h3>
+            <p>照片主色、用户指定色、统一色系和 12 种材质/光线背景都能与横版或竖版自由组合。</p>
           </article>
         </div>
       </section>
@@ -196,8 +233,8 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="style-data.js?v=20260815-taste4" defer></script>
-    <script src="carousel-data.js?v=20260815-taste4" defer></script>
-    <script src="app.js?v=20260815-copy-name" defer></script>
+    <script src="style-data.js?v=20260820-portrait1" defer></script>
+    <script src="carousel-data.js?v=20260820-portrait1" defer></script>
+    <script src="app.js?v=20260820-portrait1" defer></script>
   </body>
 </html>

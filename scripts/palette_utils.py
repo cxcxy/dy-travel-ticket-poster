@@ -164,6 +164,7 @@ def load_palette_candidate(
     source_path: Path | None = None,
     photo_center_y: float | None = None,
     strip_neutral_borders: bool | None = None,
+    layout_id: str | None = None,
 ) -> tuple[RGB, RGB, RGB]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if source_path is not None:
@@ -187,6 +188,12 @@ def load_palette_candidate(
         if recorded_strip != strip_neutral_borders:
             raise ValueError(
                 "palette border-preparation mismatch: regenerate with matching border handling"
+            )
+    if layout_id is not None:
+        recorded_layout = data.get("layout", "landscape")
+        if recorded_layout != layout_id:
+            raise ValueError(
+                "palette layout mismatch: regenerate the palette with matching --layout"
             )
     for candidate in data.get("candidates", []):
         if candidate.get("id") == candidate_id:

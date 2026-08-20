@@ -4,8 +4,8 @@ This page follows `../MASTER.md`, with the following project-specific overrides.
 
 ## Product intent
 
-- The adaptive default-mode hero is the page opening and the only `h1`.
-- The 12-style selector follows the hero immediately, before update notes or usage content.
+- The real-output carousel opens the page, with the portrait keepsake ticket as its first slide.
+- A two-layout comparison follows the carousel before the capability statement and 12-style selector.
 - Favor large, readable previews over forcing all 12 styles into one viewport.
 - Selecting a style opens progressive detail; cards do not repeat long descriptions.
 
@@ -20,7 +20,7 @@ This page follows `../MASTER.md`, with the following project-specific overrides.
 
 - Design read: a portfolio-style gallery for travel-photo creators, combining real ticket outputs, warm paper surfaces, and restrained cobalt interaction.
 - Dials: `DESIGN_VARIANCE=5`, `MOTION_INTENSITY=4`, `VISUAL_DENSITY=7`.
-- Treat this as a targeted evolution: preserve the page order, navigation anchors, 15-ticket carousel, and three-column 12-style grid.
+- Treat this as a targeted evolution: preserve the page order, navigation anchors, 16-ticket carousel, two-layout comparison, and three-column 12-style grid.
 - Keep one page-level eyebrow in the hero; avoid repeating version labels or decorative section labels.
 - Place carousel controls on the image but keep the active title and counter in a dedicated caption below it.
 - Present the update notes as one featured statement plus three supporting rows instead of four interchangeable cards.
@@ -36,7 +36,8 @@ This page follows `../MASTER.md`, with the following project-specific overrides.
 
 ## Interaction
 
-- The hero preview is a 15-item carousel containing the approved ticket outputs supplied in `/Users/mac1/Desktop/票根skill/未命名文件夹/`; website derivatives live in `docs/assets/carousel/` and must not mutate the source PNGs.
+- The hero preview is a 16-item carousel. Its first item is the approved portrait-reference output; the remaining 15 items are the existing approved ticket outputs. Website derivatives live in `docs/assets/` and must not mutate source PNGs.
+- The layout comparison uses complete `3:4` outputs for both `landscape` and `portrait`, with one copyable natural-language command per layout.
 - Carousel slides preserve the complete `3:4` image with `object-fit:contain`; controls include previous, next, pause/play, a live position counter, and left/right keyboard navigation.
 - Auto-play pauses on hover, keyboard focus, page invisibility, explicit pause, and `prefers-reduced-motion`.
 - Filters expose `aria-pressed` and announce the visible result count.

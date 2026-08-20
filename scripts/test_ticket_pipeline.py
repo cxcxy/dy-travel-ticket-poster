@@ -15,6 +15,7 @@ from palette_utils import load_palette_candidate, parse_hex_color
 from recolor_existing_poster import recolor
 from render_ticket_poster import _body_font_path, _font_path, render
 from suggest_palette import suggest_palettes
+from ticket_layouts import PORTRAIT, get_layout
 from validate_ticket_output import validate
 
 
@@ -55,6 +56,28 @@ class TicketPipelineTests(unittest.TestCase):
         )
         return output, background, stub, text
 
+    def _render_portrait(self) -> tuple[Path, tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]]:
+        palette = suggest_palettes(self.source, layout_id=PORTRAIT)["candidates"][0]
+        background = parse_hex_color(palette["background"])
+        stub = parse_hex_color(palette["stub"])
+        text = parse_hex_color(palette["text"])
+        output = self.root / "portrait-ticket.png"
+        render(
+            self.source,
+            output,
+            "OLD TOWN",
+            None,
+            "2026 - 08",
+            "NO.19427",
+            "E5R8K3M2",
+            background,
+            stub,
+            text,
+            0.5,
+            layout_id=PORTRAIT,
+        )
+        return output, background, stub, text
+
     def _mutate_renderer_png(
         self,
         source_path: Path,
@@ -86,6 +109,27 @@ class TicketPipelineTests(unittest.TestCase):
                 candidate["metrics"]["background_stub_delta_ok"], 0.10
             )
 
+    def test_portrait_default_palette_matches_reference_relationship(self) -> None:
+        result = suggest_palettes(self.source, layout_id=PORTRAIT)
+        candidate = result["candidates"][0]
+        self.assertEqual(result["palette_treatment"], "portrait-reference")
+        self.assertEqual(candidate["background"], "#92946E")
+        self.assertEqual(candidate["stub"], "#E8DECF")
+        self.assertEqual(candidate["text"], "#1B1811")
+        self.assertEqual(
+            candidate["provenance"]["stub_source_role"],
+            "portrait-reference-ticket-paper",
+        )
+
+    def test_portrait_can_explicitly_use_photo_derived_palette(self) -> None:
+        result = suggest_palettes(
+            self.source,
+            layout_id=PORTRAIT,
+            palette_treatment="photo-derived",
+        )
+        self.assertEqual(result["palette_treatment"], "photo-derived")
+        self.assertNotEqual(result["candidates"][0]["stub"], "#E8DECF")
+
     def test_deterministic_render_passes_full_validation(self) -> None:
         output, background, stub, text = self._render()
         warnings = validate(
@@ -104,6 +148,104 @@ class TicketPipelineTests(unittest.TestCase):
             expected_code="E5R8K3M2",
         )
         self.assertIsInstance(warnings, list)
+
+    def test_portrait_layout_passes_full_validation(self) -> None:
+        output, background, stub, text = self._render_portrait()
+        warnings = validate(
+            output,
+            self.source,
+            0.5,
+            background,
+            stub,
+            text,
+            background,
+            "adaptive",
+            True,
+            expected_title="OLD TOWN",
+            expected_date="2026 - 08",
+            expected_number="NO.19427",
+            expected_code="E5R8K3M2",
+            layout_id=PORTRAIT,
+        )
+        with Image.open(output) as opened:
+            self.assertEqual(opened.info["dy_ticket_layout"], PORTRAIT)
+        self.assertIsInstance(warnings, list)
+
+    def test_portrait_layout_accepts_a_background_image(self) -> None:
+        palette = suggest_palettes(self.source, layout_id=PORTRAIT)["candidates"][0]
+        background = parse_hex_color(palette["background"])
+        stub = parse_hex_color(palette["stub"])
+        text = parse_hex_color(palette["text"])
+        background_path = self.root / "portrait-background.png"
+        plate = Image.new("RGB", (1170, 1560), background)
+        ImageDraw.Draw(plate).rectangle((0, 0, 1169, 6), fill=tuple(min(255, value + 2) for value in background))
+        plate.save(background_path)
+        output = self.root / "portrait-image-background.png"
+        render(
+            self.source,
+            output,
+            "OLD TOWN",
+            None,
+            "2026 - 08",
+            "NO.19427",
+            "E5R8K3M2",
+            None,
+            stub,
+            text,
+            0.5,
+            background_image_path=background_path,
+            layout_id=PORTRAIT,
+        )
+        warnings = validate(
+            output,
+            self.source,
+            0.5,
+            expected_stub=stub,
+            expected_text=text,
+            expected_perforation=plate.getpixel((0, 0)),
+            require_renderer_metadata=True,
+            expected_title="OLD TOWN",
+            expected_date="2026 - 08",
+            expected_number="NO.19427",
+            expected_code="E5R8K3M2",
+            layout_id=PORTRAIT,
+            expected_background_image=background_path,
+        )
+        self.assertIsInstance(warnings, list)
+
+    def test_portrait_palette_provenance_is_layout_locked(self) -> None:
+        result = suggest_palettes(self.source, layout_id=PORTRAIT)
+        palette_path = self.root / "portrait-palette.json"
+        palette_path.write_text(json.dumps(result), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "layout mismatch"):
+            load_palette_candidate(
+                palette_path,
+                "quiet-light",
+                self.source,
+                0.5,
+                True,
+                "landscape",
+            )
+
+    def test_portrait_barcode_bars_are_uniform_height(self) -> None:
+        output, _, _, text = self._render_portrait()
+        layout = get_layout(PORTRAIT)
+        with Image.open(output) as opened:
+            rendered = opened.convert("RGB")
+        barcode_left = layout.ticket_x + 66
+        barcode_top = layout.ticket_y + 1012
+        barcode_height = 88
+        barcode_width = layout.ticket_w - 132
+        observed_heights = set()
+        for x_pos in range(barcode_left, barcode_left + barcode_width):
+            text_rows = [
+                y_pos
+                for y_pos in range(barcode_top, barcode_top + barcode_height)
+                if rendered.getpixel((x_pos, y_pos)) == text
+            ]
+            if text_rows:
+                observed_heights.add(max(text_rows) - min(text_rows) + 1)
+        self.assertEqual(observed_heights, {barcode_height})
 
     def test_body_copy_uses_a_separate_light_mono_font(self) -> None:
         output, _, _, _ = self._render()
@@ -272,6 +414,29 @@ class TicketPipelineTests(unittest.TestCase):
             expected_date="2026 - 08",
             expected_number="NO.19427",
             expected_code="E5R8K3M2",
+        )
+        self.assertIsInstance(warnings, list)
+
+    def test_portrait_recolor_preserves_layout_and_rebuilds_divider(self) -> None:
+        output, _, stub, text = self._render_portrait()
+        recolored = self.root / "portrait-recolored.png"
+        new_background = (132, 148, 158)
+        recolor(output, recolored, new_background)
+        warnings = validate(
+            recolored,
+            self.source,
+            0.5,
+            new_background,
+            stub,
+            text,
+            new_background,
+            "user-specified",
+            True,
+            expected_title="OLD TOWN",
+            expected_date="2026 - 08",
+            expected_number="NO.19427",
+            expected_code="E5R8K3M2",
+            layout_id=PORTRAIT,
         )
         self.assertIsInstance(warnings, list)
 

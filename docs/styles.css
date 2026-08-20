@@ -98,6 +98,23 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .reference-cases-copy strong { color: var(--ink); }
 .reference-cases .hero-preview { width: 100%; }
 
+.layout-showcase { padding-block: clamp(58px, 7vw, 96px); border-top: 1px solid var(--line); scroll-margin-top: 86px; }
+.layout-heading { max-width: 860px; }
+.layout-heading h2 { font-size: clamp(40px, 4.8vw, 68px); }
+.layout-heading > p:last-child { max-width: 720px; }
+.layout-grid { max-width: 1120px; margin: 36px auto 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.layout-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper-raised); box-shadow: var(--shadow-sm); }
+.layout-media { aspect-ratio: 3 / 4; position: relative; overflow: hidden; background: #d7dde0; }
+.layout-card-portrait .layout-media { background: #92946e; }
+.layout-media img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.layout-media span { position: absolute; top: 14px; left: 14px; min-height: 30px; padding: 0 11px; border: 1px solid rgba(255,255,255,.4); border-radius: 999px; display: inline-flex; align-items: center; color: var(--on-dark); background: rgba(23,23,20,.7); backdrop-filter: blur(10px); font-size: 10px; font-weight: 850; letter-spacing: .1em; }
+.layout-card-copy { min-height: 154px; padding: 22px; display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.layout-card-copy h3 { margin: 0; font-family: var(--font-display); font-size: clamp(24px, 2.6vw, 36px); line-height: 1.05; letter-spacing: -.035em; }
+.layout-card-copy p { max-width: 44ch; margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+.layout-card-copy button { flex: 0 0 auto; min-height: 44px; padding: 0 15px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: transparent; font-size: 12px; font-weight: 750; transition: color 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease; }
+.layout-card-copy button:hover, .layout-card-copy button:focus-visible { color: var(--on-dark); border-color: var(--ink); background: var(--ink); }
+.layout-card-copy button:active { transform: scale(.97); }
+
 .hero { padding-block: clamp(44px, 5vw, 68px) 36px; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, .72fr); align-items: center; gap: clamp(32px, 5.5vw, 88px); scroll-margin-top: 86px; }
 .capabilities { grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--line); }
 .capabilities .hero-copy { max-width: 900px; }
@@ -187,6 +204,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   .gallery-tools { justify-items: start; }
   .filter-bar { justify-content: flex-start; }
   .update-grid { grid-template-columns: .9fr 1.1fr; }
+  .layout-card-copy { display: block; }
+  .layout-card-copy button { margin-top: 18px; }
 }
 
 @media (max-width: 680px) {
@@ -218,6 +237,13 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   .reference-cases { display: flex; flex-direction: column; align-items: stretch; gap: 24px; padding-block: 40px 32px; scroll-margin-top: 74px; }
   .reference-cases h2 { font-size: clamp(38px, 10.5vw, 43px); }
   .reference-cases-copy > p:last-child { margin-block: 18px 0; font-size: 16px; }
+  .layout-showcase { padding-block: 52px; scroll-margin-top: 74px; }
+  .layout-heading h2 { font-size: clamp(36px, 10vw, 43px); }
+  .layout-grid { margin-top: 24px; grid-template-columns: 1fr; gap: 14px; }
+  .layout-media { aspect-ratio: 3 / 4; }
+  .layout-card-copy { min-height: auto; padding: 20px; }
+  .layout-card-copy h3 { font-size: 29px; }
+  .layout-card-copy button { width: 100%; }
   .hero { display: flex; flex-direction: column; align-items: stretch; gap: 24px; padding-block: 40px 32px; scroll-margin-top: 74px; }
   .hero h1 { font-size: clamp(38px, 10.5vw, 43px); }
   .hero-intro { margin-block: 18px 22px; font-size: 16px; }

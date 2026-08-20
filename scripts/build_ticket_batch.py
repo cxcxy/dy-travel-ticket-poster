@@ -12,6 +12,7 @@ from PIL import Image
 
 from palette_utils import parse_hex_color
 from render_ticket_poster import render
+from ticket_layouts import LANDSCAPE
 
 
 def build_ticket(
@@ -62,6 +63,7 @@ def build_ticket(
         requested_body_font,
         background_image_path=background_image_path,
         shadow_preset=str(shadow_preset) if shadow_preset else None,
+        layout_id=str(item.get("layout", LANDSCAPE)),
     )
     return output_path
 

@@ -1,8 +1,8 @@
 # DY Travel Ticket Poster
 
-English | [简体中文](README.md) | [Live 12-style preview](https://cxcxy.github.io/dy-travel-ticket-poster/)
+English | [简体中文](README.md) | [Live preview: 2 layouts and 12 styles](https://cxcxy.github.io/dy-travel-ticket-poster/)
 
-Turn one photo or a group of photos into travel-ticket posters. Upload your images and the default style will handle the rest. Choose another style only when you want a different look.
+Turn one photo or a group of photos into travel-ticket posters. Two compositions are available: the original horizontal photo ticket and a portrait-photo keepsake ticket with its information block below. Layout and background can be combined independently.
 
 ## Reference cases
 
@@ -21,15 +21,34 @@ Here are a few examples. The left column is the original photo and the right col
 | Waterfront photographer | <img src="assets/cases/waterfront-original.jpg" width="240" alt="Original waterfront photo"> | <img src="assets/cases/waterfront-ticket.jpg" width="240" alt="Waterfront ticket poster"> |
 | Lakeside view | <img src="assets/cases/lakeside-original.jpg" width="240" alt="Original lakeside photo"> | <img src="assets/cases/lakeside-ticket.jpg" width="240" alt="Lakeside ticket poster"> |
 | Gold house | <img src="assets/cases/gold-house-original.jpg" width="240" alt="Original yellow house photo"> | <img src="assets/cases/gold-house-ticket.jpg" width="240" alt="Gold house ticket poster"> |
+| Old-town portrait keepsake | <img src="assets/cases/old-town-original.jpg" width="240" alt="Original old-town street photo"> | <img src="docs/assets/layouts/portrait-reference-linen.webp" width="240" alt="Old-town portrait keepsake ticket on an olive linen background"> |
 
 ## What it can do
 
 - Turn one photo into one ticket poster
 - Turn a group of photos into a matching set
+- Choose between a horizontal photo/right stub and a portrait photo/bottom stub
 - Keep the important people, animals, buildings, vehicles, and objects in your photos
 - Add a title, date, number, and ticket information
 - Choose a background that matches the photo, or request one shared color
 - Keep the original image proportion without stretching or distortion
+
+## Two ticket layouts
+
+| Layout | Parameter | Best for |
+| --- | --- | --- |
+| Original horizontal | `landscape` (default) | Wide scenes, groups, and architecture; photo left, information right |
+| Portrait keepsake | `portrait` | Vertical streets, architecture, portraits, and narrow compositions; rounded photo above, information and a large barcode below |
+
+Both layouts support every existing background option: photo-derived matte color, a user color, a shared batch color family, and all 12 material/light styles below. Their defaults differ: `landscape` follows the photo color, while `portrait` uses the reference's muted olive woven-fabric background, warm-ivory ticket paper, and near-black ink. Any explicit palette or background choice overrides that default.
+
+| Landscape default | Portrait default |
+| --- | --- |
+| <img src="docs/assets/default-subtle-texture.webp" width="360" alt="Default landscape ticket poster"> | <img src="docs/assets/layouts/portrait-reference-linen.webp" width="360" alt="Default portrait keepsake ticket poster"> |
+
+```text
+Turn this image into a portrait keepsake ticket and use background style 10.
+```
 
 ## How to use it
 
@@ -90,9 +109,9 @@ The simplest option is to make the poster without choosing a style:
 Use the default style.
 ```
 
-The default style uses a restrained version of the photo's main color, finished with fine matte paper texture.
+The default depends on the layout: `landscape` derives a restrained matte-paper background from the photo, while `portrait` uses the reference-locked olive linen, warm-ivory ticket paper, and near-black ink.
 
-Only if you want a different look, open the [12-style preview](https://cxcxy.github.io/dy-travel-ticket-poster/) and tell the Skill the number or Chinese name you like.
+Only if you want a different look, open the [2-layout and 12-style preview](https://cxcxy.github.io/dy-travel-ticket-poster/) and tell the Skill the layout, number, or Chinese name you like.
 
 For example:
 
@@ -153,9 +172,9 @@ Change the title to WATERFRONT and the date to 2026 - 08.
 
 ## What happens by default
 
-- Without a style request, the background follows the main colors in each photo.
-- The default background preserves each photo's main hue, softens saturation, and adds fine matte paper texture visible only up close.
-- In a batch, each photo gets its own matching color by default.
+- Without a background request, `landscape` follows each photo's main color and adds fine matte paper texture.
+- Without an explicit style request, `portrait` uses the reference's muted olive woven fabric, warm-ivory ticket paper, and near-black ink; the background uses slightly irregular 4–5 px yarn spacing with rounded thread highlights and a gentle upper-left to lower-right light falloff.
+- In a landscape batch, each photo gets its own matching color; a portrait batch keeps the same reference-locked olive, ivory, and near-black identity by default.
 - To use one color family for all photos, say “use one shared blue-gray color family”.
 - If you do not provide a title, place, or date, the Skill uses simple neutral wording instead of guessing.
 
@@ -167,6 +186,10 @@ Use $dy-travel-ticket-poster to turn this image into a ticket poster.
 
 ```text
 Use $dy-travel-ticket-poster to turn this image into a ticket poster with style 5.
+```
+
+```text
+Use $dy-travel-ticket-poster to make a portrait keepsake ticket with a photo-derived background.
 ```
 
 ```text
@@ -190,6 +213,13 @@ For example:
 ```text
 Use this travel photo with style 8. Set the title to OLD TOWN and the date to 2026 - 08.
 ```
+
+## 2026-08-20 update
+
+- Added the `portrait` keepsake layout with a vertical photo, horizontal tear line, scalloped top/bottom edges, bottom information, and a large barcode.
+- The complete `portrait` default now matches the reference: muted olive woven fabric, warm-ivory ticket paper, and near-black ink; photo-derived, solid, unified, and 12-style choices remain explicit overrides.
+- The live gallery now includes a landscape/portrait comparison, a portrait-first showcase, and copyable layout prompts.
+- Palette provenance, batch manifests, PNG metadata, and strict validation now lock the selected layout.
 
 ## 2026-08-15 update
 

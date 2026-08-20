@@ -1,4 +1,4 @@
 interface:
   display_name: "DY 票根海报与背景风格"
-  short_description: "原图保真、精确排版、主色细腻纸纹与12种背景风格"
-  default_prompt: "使用 $dy-travel-ticket-poster 保持主体和原图不变，以独立字体和等高条码确定性排版；未指定风格时按每张图照片主色生成克制柔和的细腻哑光纸纹背景，只有我明确要求时才统一色系、改为纯色或启用完整风格。"
+  short_description: "横版/竖版票根、原图保真、参考配色与12种背景"
+  default_prompt: "使用 $dy-travel-ticket-poster 保持主体和原图不变；横版默认照片主色纸纹，竖版默认参考图的灰橄榄绿织物、暖象牙票纸和近黑文字，任何明确指定的纯色、照片主色、统一色系或12种背景都优先。"

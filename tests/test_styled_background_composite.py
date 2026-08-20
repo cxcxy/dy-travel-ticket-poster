@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageStat
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,12 +28,91 @@ from build_subtle_texture_background import (  # noqa: E402
     MAX_SATURATION,
     MIN_LIGHTNESS,
     MIN_SATURATION,
+    PORTRAIT_REFERENCE_COLOR,
+    build_portrait_reference_background,
     build_subtle_background,
+    resolve_background_treatment,
     supporting_color,
 )
 
 
 class StyledBackgroundCompositeTests(unittest.TestCase):
+    def test_auto_background_routes_portrait_to_reference_linen(self) -> None:
+        self.assertEqual(
+            resolve_background_treatment("auto", "portrait", "adaptive", None),
+            "portrait-reference-linen",
+        )
+        self.assertEqual(
+            resolve_background_treatment("auto", "landscape", "adaptive", None),
+            "photo-matte",
+        )
+        self.assertEqual(
+            resolve_background_treatment(
+                "auto",
+                "portrait",
+                "adaptive",
+                (80, 100, 120),
+            ),
+            "photo-matte",
+        )
+        self.assertEqual(
+            resolve_background_treatment(
+                "photo-matte",
+                "portrait",
+                "adaptive",
+                None,
+            ),
+            "photo-matte",
+        )
+
+    def test_portrait_reference_linen_is_deterministic_and_textured(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "first.png"
+            second = root / "second.png"
+            build_portrait_reference_background(first, seed=40817)
+            build_portrait_reference_background(second, seed=40817)
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            with Image.open(first) as background:
+                self.assertEqual(background.mode, "RGB")
+                self.assertEqual(background.size, CANVAS_SIZE)
+                top_left = background.crop((0, 0, 180, 180))
+                bottom_right = background.crop(
+                    (CANVAS_SIZE[0] - 180, CANVAS_SIZE[1] - 180, *CANVAS_SIZE)
+                )
+                top_mean = sum(pixel[0] for pixel in top_left.getdata()) / (
+                    top_left.width * top_left.height
+                )
+                bottom_mean = sum(pixel[0] for pixel in bottom_right.getdata()) / (
+                    bottom_right.width * bottom_right.height
+                )
+                top_right = background.crop(
+                    (CANVAS_SIZE[0] - 180, 0, CANVAS_SIZE[0], 180)
+                )
+                right_mean = sum(pixel[0] for pixel in top_right.getdata()) / (
+                    top_right.width * top_right.height
+                )
+                self.assertGreater(top_mean, bottom_mean + 28)
+                self.assertGreater(top_mean, right_mean + 18)
+                for minimum, maximum in background.getextrema():
+                    self.assertGreater(maximum, minimum)
+                    self.assertLessEqual(maximum - minimum, 96)
+                center = background.crop((500, 700, 670, 860))
+                self.assertGreater(len(set(center.getdata())), 8)
+                center_luma = center.convert("L")
+                horizontal_difference = ImageChops.difference(
+                    center_luma.crop((0, 0, center.width - 1, center.height)),
+                    center_luma.crop((1, 0, center.width, center.height)),
+                )
+                vertical_difference = ImageChops.difference(
+                    center_luma.crop((0, 0, center.width, center.height - 1)),
+                    center_luma.crop((0, 1, center.width, center.height)),
+                )
+                self.assertGreater(ImageStat.Stat(horizontal_difference).mean[0], 4.0)
+                self.assertGreater(ImageStat.Stat(vertical_difference).mean[0], 6.0)
+                self.assertGreater(ImageStat.Stat(center_luma).stddev[0], 8.0)
+            self.assertEqual(PORTRAIT_REFERENCE_COLOR, (146, 148, 110))
+
     def test_default_background_retains_photo_hue_with_softened_saturation(self) -> None:
         source = (22, 103, 195)
         selected = supporting_color(source)

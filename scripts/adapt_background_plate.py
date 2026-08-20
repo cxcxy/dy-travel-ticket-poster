@@ -13,6 +13,7 @@ from typing import Iterable
 from PIL import Image, ImageOps
 
 from normalize_reference_layout import CANVAS_SIZE
+from ticket_layouts import LANDSCAPE, LAYOUT_IDS, get_layout
 
 
 PALETTE_MODES = ("adaptive", "unified")
@@ -45,13 +46,22 @@ def _rgb(hue: float, lightness: float, saturation: float) -> tuple[int, int, int
     return tuple(round(channel * 255) for channel in values)
 
 
-def _candidate_theme_color(photo_path: Path, center_y: float) -> tuple[int, int, int]:
+def _candidate_theme_color(
+    photo_path: Path,
+    center_y: float,
+    layout_id: str = LANDSCAPE,
+) -> tuple[int, int, int]:
     if not 0.0 <= center_y <= 1.0:
         raise ValueError("photo center_y must be between 0 and 1")
+    layout = get_layout(layout_id)
+    analysis_size = (
+        ANALYSIS_SIZE[0],
+        max(64, round(ANALYSIS_SIZE[0] * layout.photo_h / layout.photo_w)),
+    )
     with Image.open(photo_path) as photo:
         panel = ImageOps.fit(
             photo.convert("RGB"),
-            ANALYSIS_SIZE,
+            analysis_size,
             method=Image.Resampling.LANCZOS,
             centering=(0.5, center_y),
         )
@@ -119,7 +129,9 @@ def derive_theme_color(
     source_photos: list[Path],
     center_ys: list[float],
     palette_mode: str,
+    layout_id: str = LANDSCAPE,
 ) -> tuple[tuple[int, int, int], list[tuple[int, int, int]]]:
+    get_layout(layout_id)
     if palette_mode not in PALETTE_MODES:
         raise ValueError(f"unknown palette mode: {palette_mode}")
     if not source_photos:
@@ -135,7 +147,7 @@ def derive_theme_color(
         raise ValueError("provide one --photo-center-y per source photo, or one shared value")
 
     extracted = [
-        _candidate_theme_color(path, center_y)
+        _candidate_theme_color(path, center_y, layout_id)
         for path, center_y in zip(source_photos, center_ys)
     ]
     selected = extracted[0] if palette_mode == "adaptive" else _group_medoid(extracted)
@@ -190,6 +202,7 @@ def main() -> None:
     parser.add_argument("--source-photo", type=Path, action="append", default=[])
     parser.add_argument("--photo-center-y", type=float, action="append", default=[])
     parser.add_argument("--theme-color", type=parse_hex)
+    parser.add_argument("--layout", choices=LAYOUT_IDS, default=LANDSCAPE)
     args = parser.parse_args()
 
     extracted: list[tuple[int, int, int]] = []
@@ -200,6 +213,7 @@ def main() -> None:
             args.source_photo,
             args.photo_center_y,
             args.palette_mode,
+            args.layout,
         )
     base = adapt_plate(args.plate, args.output, selected)
     print(
